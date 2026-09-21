@@ -173,15 +173,9 @@ the deterministically recomputed suffix. -/
 noncomputable def greedySuffix (G : UGraph n) (pref : List (Vert n)) : List (Vert n) :=
   pref ++ mcsRemainder G pref.toFinset
 
-/-- Index of `a` in `order`, or `0` if absent. -/
-def posOf [BEq α] (a : α) (order : List α) : ℕ :=
-  match order.findIdx? (fun x => x == a) with
-  | some i => i
-  | none => 0
-
 /-- Position (in `order`) of the earlier of the endpoints `u` and `v`. -/
-def earlierPos [BEq (Vert n)] (order : List (Vert n)) (u v : Vert n) : ℕ :=
-  min (posOf u order) (posOf v order)
+def earlierPos (order : List (Vert n)) (u v : Vert n) : ℕ :=
+  min (List.idxOf u order) (List.idxOf v order)
 
 /-- The candidate's dynamic update for an edge flip: keep the prefix of the
 current ordering up to and including the earlier of the two endpoints, and
@@ -193,76 +187,10 @@ noncomputable def mcsUpdate (G : UGraph n) (u v : Vert n)
 
 /-! ## Lemmas -/
 
-/-- `posOf` of a member is the `findIdx` index. -/
-lemma posOf_eq_findIdx (a : Vert n) (order : List (Vert n)) (hmem : a ∈ order) :
-    posOf a order = order.findIdx (fun x => x == a) := by
-  unfold posOf
-  rw [List.findIdx?_eq_some_of_exists ⟨a, hmem, by simp⟩]
-
-/-- `posOf` of a member is in-bounds. -/
-lemma posOf_lt_length (a : Vert n) (order : List (Vert n)) (hmem : a ∈ order) :
-    posOf a order < order.length := by
-  rw [posOf_eq_findIdx a order hmem]
-  exact List.findIdx_lt_length_of_exists ⟨a, hmem, by simp⟩
-
-/-- The vertex at index `posOf a order` is `a`. -/
-lemma getElem_posOf (a : Vert n) (order : List (Vert n)) (hmem : a ∈ order) :
-    order.get ⟨posOf a order, posOf_lt_length a order hmem⟩ = a := by
-  have hlt : order.findIdx (fun x => x == a) < order.length := by
-    rw [← posOf_eq_findIdx a order hmem]
-    exact posOf_lt_length a order hmem
-  have hpg : (fun x => x == a) (order.get ⟨order.findIdx (fun x => x == a), hlt⟩) = true :=
-    List.findIdx_getElem (p := fun x => x == a) (xs := order)
-  have heqval : order.get ⟨order.findIdx (fun x => x == a), hlt⟩ = a :=
-    LawfulBEq.eq_of_beq hpg
-  have hidx : (⟨posOf a order, posOf_lt_length a order hmem⟩ : Fin order.length) =
-      ⟨order.findIdx (fun x => x == a), hlt⟩ := by
-    apply Fin.ext
-    dsimp
-    exact posOf_eq_findIdx a order hmem
-  rw [hidx]
-  exact heqval
-
-/-- If `order[j] = a`, then `a`'s `findIdx` position is at most `j`. -/
-lemma findIdx_le_of_getElem (order : List (Vert n)) (a : Vert n) {j : ℕ} (hj : j < order.length)
-    (h : order[j] = a) : order.findIdx (fun x => x == a) ≤ j := by
-  by_contra hn
-  have hjf : j < order.findIdx (fun x => x == a) := Nat.lt_of_not_ge hn
-  have hf : (fun x => x == a) order[j] = false := List.not_of_lt_findIdx hjf
-  rw [h] at hf
-  simp at hf
-
-/-- A member of a prefix of length `i ≤ posOf a order` is absent. -/
-lemma not_mem_take_of_le_posOf (a : Vert n) (order : List (Vert n)) (hmem : a ∈ order)
-    {i : ℕ} (hi : i ≤ posOf a order) : a ∉ order.take i := by
-  classical
-  intro h
-  rcases List.getElem_of_mem h with ⟨j, hjtake, hval⟩
-  have hjj : j < i := by
-    have : j < (order.take i).length := hjtake
-    rw [List.length_take] at this
-    omega
-  have hjlen : j < order.length := by
-    exact Nat.lt_trans (Nat.lt_of_lt_of_le hjj hi) (posOf_lt_length a order hmem)
-  have hi_take : i ≤ order.length := Nat.le_trans hi (Nat.le_of_lt (posOf_lt_length a order hmem))
-  have hjjmin : j < (order.take i).length := by
-    rw [List.length_take]
-    omega
-  have htka' : (order.take i)[j] = order[j] := by
-    rw [List.getElem_take]
-  have horderj' : order[j] = a := by
-    rw [← htka']
-    exact hval
-  have hfi : order.findIdx (fun x => x == a) ≤ j := by
-    exact findIdx_le_of_getElem order a hjlen horderj'
-  have : posOf a order ≤ j := by
-    rwa [← posOf_eq_findIdx a order hmem] at hfi
-  omega
-
 /-- `earlierPos` is at most the position of each endpoint. -/
-lemma le_posOf_of_le_earlierPos (u v : Vert n) (order : List (Vert n))
-    (hmu : u ∈ order) (hmv : v ∈ order) {i : ℕ} (hi : i ≤ earlierPos order u v) :
-    i ≤ posOf u order ∧ i ≤ posOf v order := by
+lemma le_idxOf_of_le_earlierPos (u v : Vert n) (order : List (Vert n))
+    {i : ℕ} (hi : i ≤ earlierPos order u v) :
+    i ≤ List.idxOf u order ∧ i ≤ List.idxOf v order := by
   unfold earlierPos at hi
   constructor
   · exact le_trans hi (Nat.min_le_left _ _)
@@ -272,10 +200,12 @@ lemma le_posOf_of_le_earlierPos (u v : Vert n) (order : List (Vert n))
 lemma endpoints_not_in_prefix (order : List (Vert n)) (u v : Vert n)
     (hmu : u ∈ order) (hmv : v ∈ order) {i : ℕ} (hi : i ≤ earlierPos order u v) :
     u ∉ order.take i ∧ v ∉ order.take i := by
-  rcases le_posOf_of_le_earlierPos u v order hmu hmv hi with ⟨hu, hv⟩
+  rcases le_idxOf_of_le_earlierPos u v order hi with ⟨hu, hv⟩
   constructor
-  · exact not_mem_take_of_le_posOf u order hmu hu
-  · exact not_mem_take_of_le_posOf v order hmv hv
+  · rw [List.mem_take_iff_idxOf_lt hmu]
+    omega
+  · rw [List.mem_take_iff_idxOf_lt hmv]
+    omega
 
 /-- A valid MCS ordering contains every vertex. -/
 lemma mem_of_IsMCSOrdering (order : List (Vert n)) (hvalid : IsMCSOrdering G order) :
@@ -307,8 +237,7 @@ lemma neigh_eq_of_flip (chosen : Finset (Vert n)) (u v : Vert n)
     apply Finset.filter_congr
     intro x hxchosen
     constructor
-    · intro hnot
-      intro hadj
+    · intro hnot hadj
       apply hnot
       rcases hflip with ⟨huv, hflipadj⟩
       have heq : G.adj z x = G'.adj z x := by
@@ -319,8 +248,7 @@ lemma neigh_eq_of_flip (chosen : Finset (Vert n)) (u v : Vert n)
         · rcases h' with ⟨rfl, rfl⟩
           exfalso; exact hu hxchosen
       exact heq ▸ hadj
-    · intro hnot
-      intro hadj
+    · intro hnot hadj
       apply hnot
       rcases hflip with ⟨huv, hflipadj⟩
       have heq : G'.adj z x = G.adj z x := by
@@ -505,11 +433,12 @@ theorem mcsUpdate_preserves_invariant (u v : Vert n) (order : List (Vert n))
   have huv : u ≠ v := hflip.1
   have hnodup := hvalid.1
   have hmemu : u ∈ order := mem_of_IsMCSOrdering order hvalid u
-  rw [mcsUpdate, dif_neg huv]
+  rw [mcsUpdate, dite_eq_right huv]
   have hbound : earlierPos order u v + 1 ≤ order.length := by
     unfold earlierPos
-    have hpos : posOf u order < order.length := posOf_lt_length u order hmemu
-    have : min (posOf u order) (posOf v order) ≤ posOf u order := Nat.min_le_left _ _
+    have hpos : List.idxOf u order < order.length := List.idxOf_lt_length_of_mem hmemu
+    have : min (List.idxOf u order) (List.idxOf v order) ≤ List.idxOf u order :=
+      Nat.min_le_left _ _
     omega
   refine greedySuffix_valid G' (order.take (earlierPos order u v + 1)) ?N ?S
   · exact List.Pairwise.take hnodup

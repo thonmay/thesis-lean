@@ -1,0 +1,32 @@
+name: Lean Action CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read # Read access to repository contents
+  pages: write # Write access to GitHub Pages
+  id-token: write # Write access to ID tokens
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+      # Independent external kernel check: leanchecker (Lean4Lean) re-validates
+      # every compiled module, guarding against elaborator/kernel discrepancies.
+      # See https://github.com/digama0/lean4lean
+      - name: Check with leanchecker (external independent kernel)
+        run: |
+          set -euo pipefail
+          for olean in .lake/build/lib/lean/ThesisLean/*.olean; do
+            mod="${olean%.olean}"; mod="${mod#.lake/build/lib/lean/}"
+            echo "leanchecker: $mod"
+            lake env leanchecker "$mod"
+          done
+      - uses: leanprover-community/docgen-action@v1
