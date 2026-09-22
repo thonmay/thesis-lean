@@ -15,6 +15,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+      # GitHub-hosted runners fill their disk with preinstalled toolchains;
+      # mathlib + module builds need several GB more. Free space first.
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
       - uses: leanprover/lean-action@v1
       # Independent external kernel check: leanchecker (Lean4Lean) re-validates
       # every compiled module, guarding against elaborator/kernel discrepancies.
