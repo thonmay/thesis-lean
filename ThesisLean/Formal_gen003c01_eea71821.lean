@@ -1064,6 +1064,30 @@ theorem legal_middle_delete (order : List (Vert n)) (u v : Vert n)
   change IsMCSNext G' chosen x
   exact IsMCSNext_of_drop chosen w x hneigh' hwle hnextG hxw
 
+/-- If `w` is unchosen and has strictly larger cardinality than every other
+unchosen vertex, then `w` is the legal MCS pick: the strict maximum settles
+both the maximality and the tie-break clause. -/
+lemma IsMCSNext_of_unique_max (H : UGraph n) (chosen : Finset (Vert n)) (w : Vert n)
+    (hwU : w ∈ (Finset.univ : Finset (Vert n)) \ chosen)
+    (hstrict : ∀ x, x ∈ (Finset.univ : Finset (Vert n)) \ chosen → x ≠ w →
+      H.neigh chosen x < H.neigh chosen w) :
+    IsMCSNext H chosen w := by
+  classical
+  unfold IsMCSNext
+  constructor
+  · exact hwU
+  constructor
+  · intro x hx
+    by_cases hxw : x = w
+    · subst x; omega
+    · exact (hstrict x hx hxw).le
+  · intro x hx hc
+    by_cases hxw : x = w
+    · subst x; exact le_refl w
+    · have hlt := hstrict x hx hxw
+      rw [hc] at hlt
+      omega
+
 /-- Insertion probe correctness: inside the insertion window `(pu, pv]`, the
 old choice at step `k` is illegal on `G'` exactly when the later endpoint
 beats it on `G'`: strictly larger cardinality, or equal cardinality with
@@ -1079,7 +1103,132 @@ theorem insert_break_iff (order : List (Vert n)) (u v : Vert n)
       let c := G'.neigh (order.take k).toFinset (order.get ⟨k, hk⟩)
       let d := G'.neigh (order.take k).toFinset w
       d > c ∨ (d = c ∧ w < order.get ⟨k, hk⟩) := by
-  sorry
+  classical
+  let chosen := (order.take k).toFinset
+  let x := order.get ⟨k, hk⟩
+  let w := laterVert order u v
+  have huv := hflip.1
+  have hmu : u ∈ order := mem_of_IsMCSOrdering order hvalid u
+  have hmv : v ∈ order := mem_of_IsMCSOrdering order hvalid v
+  have hwe : w = u ∨ w = v := laterVert_eq order u v
+  have hw_mem_order : w ∈ order := by
+    rcases hwe with h1 | h2
+    · rw [h1]; exact hmu
+    · rw [h2]; exact hmv
+  have hidx_w : List.idxOf w order = laterPos order u v := idxOf_laterVert order u v
+  -- the later endpoint is not yet chosen at step k
+  have hwN : w ∉ chosen := by
+    rw [List.mem_toFinset]
+    intro hwmem
+    have hwi : List.idxOf w order < k :=
+      (List.mem_take_iff_idxOf_lt hw_mem_order).mp hwmem
+    rw [hidx_w] at hwi
+    omega
+  have hwU : w ∈ (Finset.univ : Finset (Vert n)) \ chosen :=
+    Finset.mem_sdiff.mpr ⟨Finset.mem_univ w, hwN⟩
+  -- the old choice x is unchosen, and legal on G
+  have hxN : x ∉ chosen := by
+    rw [List.mem_toFinset]
+    intro hxmem
+    have hxi : List.idxOf x order < k :=
+      (List.mem_take_iff_idxOf_lt (List.get_mem order ⟨k, hk⟩)).mp hxmem
+    have hxpos : List.idxOf x order = k := List.get_idxOf hvalid.1 ⟨k, hk⟩
+    rw [hxpos] at hxi
+    omega
+  have hxU : x ∈ (Finset.univ : Finset (Vert n)) \ chosen :=
+    Finset.mem_sdiff.mpr ⟨Finset.mem_univ x, hxN⟩
+  have hnextG : IsMCSNext G chosen x := hvalid.2.2 k hk
+  obtain ⟨_, hxmax, hxmin⟩ := hnextG
+  -- the earlier endpoint is chosen at step k: idxOf a = earlierPos < k
+  have haC : earlierVert order u v ∈ chosen := by
+    have ham : earlierVert order u v ∈ order := by
+      rcases earlierVert_eq order u v with h1 | h2
+      · rw [h1]; exact hmu
+      · rw [h2]; exact hmv
+    have hmem : earlierVert order u v ∈ order.take k := by
+      rw [List.mem_take_iff_idxOf_lt ham, idxOf_earlierVert]
+      exact hgt
+    exact List.mem_toFinset.mpr hmem
+  -- the flip cardinality analysis on the prefix `chosen`
+  have hAw := neigh_flip_insert hflip hins hins' chosen (earlierVert order u v) w
+    haC hwN (earlier_ne_later order u v huv hvalid.1 hmu hmv)
+    (earlierVert_eq order u v) hwe
+  -- w's cardinality rises by one on G'
+  have hB : G'.neigh chosen w = G.neigh chosen w + 1 := hAw.2.1
+  -- every other unchosen vertex's cardinality is unchanged on G'
+  have hC : ∀ y, y ∉ chosen → y ≠ w → G'.neigh chosen y = G.neigh chosen y := hAw.2.2
+  have hxC : ∀ y, y ∈ (Finset.univ : Finset (Vert n)) \ chosen → y ≠ w →
+      G'.neigh chosen y = G.neigh chosen y := by
+    intro y hy hyw
+    exact hC y (Finset.mem_sdiff.mp hy).2 hyw
+  constructor
+  · intro hnot
+    by_cases hxw : x = w
+    · -- if x = w, the flip makes w a strict max on G', contradicting hnot
+      have hwNext : IsMCSNext G' chosen w :=
+        IsMCSNext_of_unique_max G' chosen w hwU (by
+          intro y hy hyw
+          have hGy := hxC y hy hyw
+          have hmax' : G.neigh chosen y ≤ G.neigh chosen w := by
+            rw [← hxw]
+            exact hxmax y hy
+          rw [hGy, hB]
+          omega)
+      have hxNext : IsMCSNext G' chosen x := by rw [hxw]; exact hwNext
+      exfalso
+      exact hnot hxNext
+    · -- x ≠ w: on G' the cardinality of x is unchanged
+      have hxG : G'.neigh chosen x = G.neigh chosen x := hxC x hxU hxw
+      -- ¬IsMCSNext G' chosen x, with x unchosen, yields a witness y beating x
+      have hsplit : (∃ y, y ∈ (Finset.univ : Finset (Vert n)) \ chosen ∧
+            G'.neigh chosen x < G'.neigh chosen y) ∨
+          (∃ y, y ∈ (Finset.univ : Finset (Vert n)) \ chosen ∧
+            G'.neigh chosen y = G'.neigh chosen x ∧ y < x) := by
+        by_cases hmax' : ∀ y, y ∈ (Finset.univ : Finset (Vert n)) \ chosen →
+            G'.neigh chosen y ≤ G'.neigh chosen x
+        · right
+          have hCnot : ¬∀ y, y ∈ (Finset.univ : Finset (Vert n)) \ chosen →
+              G'.neigh chosen y = G'.neigh chosen x → x ≤ y := by
+            intro hmin'
+            exact hnot ⟨hxU, hmax', hmin'⟩
+          push_neg at hCnot
+          obtain ⟨y, hyU, heq, hge⟩ := hCnot
+          exact ⟨y, hyU, heq, hge⟩
+        · left
+          push_neg at hmax'
+          obtain ⟨y, hyU, hge⟩ := hmax'
+          exact ⟨y, hyU, hge⟩
+      cases hsplit with
+      | inl hex =>
+          obtain ⟨y, hyU, hgt⟩ := hex
+          -- y must be w: every other unchosen vertex keeps its G-cardinality
+          have hyw : y = w := by
+            by_contra hyn
+            have hyG := hxC y hyU hyn
+            rw [hxG, hyG] at hgt
+            have hle := hxmax y hyU
+            omega
+          subst y
+          exact Or.inl hgt
+      | inr hex =>
+          obtain ⟨y, hyU, heq, hlt⟩ := hex
+          have hyw : y = w := by
+            by_contra hyn
+            have hyG := hxC y hyU hyn
+            rw [hxG, hyG] at heq
+            have hle := hxmin y hyU heq
+            exact lt_irrefl y (lt_of_lt_of_le hlt hle)
+          subst y
+          exact Or.inr ⟨heq, hlt⟩
+  · intro hdis
+    -- whichever disjunct holds, x fails the G' MCS test via the witness w
+    refine fun hnextG' => ?_
+    obtain ⟨_, hmax', hmin'⟩ := hnextG'
+    cases hdis with
+    | inl hdg =>
+        exact lt_irrefl _ (lt_of_lt_of_le hdg (hmax' w hwU))
+    | inr heq =>
+        exact lt_irrefl w (lt_of_lt_of_le heq.2 (hmin' w hwU heq.1))
 
 /-- Deletion probe correctness: the candidate's probe fires exactly when
 step `pv` (whose choice is the later endpoint) is illegal on `G'`. -/
@@ -1143,7 +1292,16 @@ theorem greedySuffix_full (H : UGraph n) (order : List (Vert n))
 
 /-- `init` produces a valid MCS ordering of the given graph. -/
 theorem init_valid (H : UGraph n) : ValidState H (initOrder H) := by
-  sorry
+  unfold ValidState initOrder
+  exact DynamicMCS.UGraph.init_valid H
+
+/-- A valid MCS ordering is a permutation of all vertices. -/
+lemma order_toFinset_univ (order : List (Vert n))
+    (hvalid : IsMCSOrdering G order) :
+    order.toFinset = (Finset.univ : Finset (Vert n)) := by
+  classical
+  refine Finset.eq_univ_of_forall (fun x => ?_)
+  exact List.mem_toFinset.mpr (mem_of_IsMCSOrdering order hvalid x)
 
 /-- `insert_edge` preserves the invariant: for every finite graphs `G`, `G'`
 differing only by the inserted edge `{u, v}`, and every valid MCS ordering
@@ -1151,15 +1309,113 @@ differing only by the inserted edge `{u, v}`, and every valid MCS ordering
 theorem insert_update_valid (u v : Vert n) (order : List (Vert n))
     (hflip : FlipOf G G' u v) (hvalid : IsMCSOrdering G order) :
     ValidState G' (insertUpdate G' order u v) := by
-  sorry
+  classical
+  unfold ValidState insertUpdate
+  -- Expose the `let` binding so the window result can be rewritten.
+  show G'.IsMCSOrdering
+    (let k := Option.getD (firstBreakWindow G' order
+      (earlierPos order u v + 1) (laterPos order u v)) order.length;
+      G'.greedySuffix (List.take k order))
+  -- Window bounds of the probe: k0 = earlierPos + 1, k1 = laterPos.
+  by_cases hk0 : firstBreak G' order (earlierPos order u v + 1) = none
+  · -- No break at or after the earlier endpoint: keep the whole order.
+    have hfull : Option.getD (firstBreakWindow G' order
+        (earlierPos order u v + 1) (laterPos order u v)) order.length =
+        order.length := by
+      unfold firstBreakWindow
+      rw [hk0]
+      simp
+    rw [hfull]
+    show G'.IsMCSOrdering (G'.greedySuffix (List.take order.length order))
+    rw [List.take_length]
+    rw [greedySuffix_full G' order (order_toFinset_univ order hvalid)]
+    refine ordering_of_steps_legal order hvalid ?_
+    intro i hi
+    by_cases hi0 : i ≤ earlierPos order u v
+    · exact prefix_preserved order u v hflip hvalid i hi0 hi
+    · have hgeo : earlierPos order u v + 1 ≤ i := by omega
+      exact (firstBreak_none G' order (earlierPos order u v + 1)).mp hk0 i hi hgeo
+  · -- The scan finds a first break k.
+    obtain ⟨k, hk⟩ :=
+      (Option.ne_none_iff_exists (o := firstBreak G' order (earlierPos order u v + 1))).mp hk0
+    have hk' : firstBreak G' order (earlierPos order u v + 1) = some k := hk.symm
+    -- Tightness: the first break cannot lie past the later endpoint,
+    -- because every step after `laterPos` is legal on `G'` for any flip.
+    have htight : k ≤ laterPos order u v := by
+      rcases (firstBreak_some G' order (earlierPos order u v + 1) k).mp hk'
+        with ⟨hklen, _, hbad, _⟩
+      by_contra hgt
+      have hgt' : laterPos order u v < k := by omega
+      exact hbad (legal_after_laterPos order u v hflip hvalid k hklen hgt')
+    have hkd : Option.getD (firstBreakWindow G' order
+        (earlierPos order u v + 1) (laterPos order u v)) order.length = k := by
+      unfold firstBreakWindow
+      rw [hk']
+      simp [htight]
+    rw [hkd]
+    show G'.IsMCSOrdering (G'.greedySuffix (List.take k order))
+    refine update_from_prefix order k hvalid ?_
+    intro i hi hi_lt_k
+    by_cases hi0 : i ≤ earlierPos order u v
+    · exact prefix_preserved order u v hflip hvalid i hi0 hi
+    · have hgeo : earlierPos order u v + 1 ≤ i := by omega
+      rcases (firstBreak_some G' order (earlierPos order u v + 1) k).mp hk'
+        with ⟨_, _, _, hall⟩
+      exact hall i hi hgeo hi_lt_k
 
 /-- `delete_edge` preserves the invariant: for every finite graphs `G`, `G'`
 differing only by the deleted edge `{u, v}`, and every valid MCS ordering
 `order` of `G`, the updated ordering is a valid MCS ordering of `G'`. -/
 theorem delete_update_valid (u v : Vert n) (order : List (Vert n))
-    (hflip : FlipOf G G' u v) (hvalid : IsMCSOrdering G order) :
+    (hflip : FlipOf G G' u v) (hdel : G.adj u v) (hdel' : ¬G'.adj u v)
+    (hvalid : IsMCSOrdering G order) :
     ValidState G' (deleteUpdate G' order u v) := by
-  sorry
+  classical
+  unfold ValidState deleteUpdate
+  by_cases hb : deletionBreaks G' order u v = true
+  · -- probe fires: regreedy from laterPos
+    rw [if_pos (by simpa [deletionBreaks] using hb)]
+    refine update_from_prefix order (laterPos order u v) hvalid ?_
+    intro i hi hi_lt
+    by_cases hi0 : i ≤ earlierPos order u v
+    · exact prefix_preserved order u v hflip hvalid i hi0 hi
+    · -- i is a middle step: earlierPos < i < laterPos
+      have hgt : earlierPos order u v < i := by omega
+      exact legal_middle_delete order u v hflip hdel hdel' hvalid i hi hgt hi_lt
+  · -- probe does not fire: keep the whole order, every step legal on G'
+    rw [if_neg (by simpa [deletionBreaks] using hb)]
+    refine ordering_of_steps_legal order hvalid ?_
+    intro i hi
+    by_cases hi0 : i ≤ earlierPos order u v
+    · exact prefix_preserved order u v hflip hvalid i hi0 hi
+    · -- i > earlierPos: either middle (earlierPos < i < laterPos) or the later
+      -- step (i = laterPos) or after (i > laterPos)
+      have hgt0 : earlierPos order u v < i := by omega
+      by_cases hlteq : i ≤ laterPos order u v
+      · by_cases heq : i = laterPos order u v
+        · -- step laterPos: ending `order.get i = laterVert`; the probe did not
+          -- fire, so this step is legal on G'
+          have hmu : u ∈ order := mem_of_IsMCSOrdering order hvalid u
+          have hmv : v ∈ order := mem_of_IsMCSOrdering order hvalid v
+          have hchoose : order.get ⟨laterPos order u v, _⟩ = laterVert order u v :=
+            laterVert_get order u v hmu hmv
+          -- deletionBreaks G' order u v = false: the pick is legal
+          have hpop : deletionBreaks G' order u v = true ↔
+              ¬ IsMCSNext G' (order.take (laterPos order u v)).toFinset
+                (laterVert order u v) := deletionBreaks_true_iff order u v hflip hvalid
+          have hlegal : IsMCSNext G' (order.take (laterPos order u v)).toFinset
+              (laterVert order u v) := by
+            by_contra hn
+            exact hb (hpop.mpr hn)
+          subst heq
+          rw [hchoose]
+          exact hlegal
+        · -- middle step
+          have hlt : i < laterPos order u v := lt_of_le_of_ne hlteq heq
+          exact legal_middle_delete order u v hflip hdel hdel' hvalid i hi hgt0 hlt
+      · -- i > laterPos
+        have hgt : laterPos order u v < i := lt_of_not_ge hlteq
+        exact legal_after_laterPos order u v hflip hvalid i hi hgt
 
 end Eea71821
 end DynamicMCS
