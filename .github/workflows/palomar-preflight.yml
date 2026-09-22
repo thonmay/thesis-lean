@@ -1,0 +1,23 @@
+name: Palomar Preflight
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Full 40-character commit to verify
+        required: true
+        type: string
+
+jobs:
+  preflight:
+    uses: PalomarRegistry/PalomarSubmission/.github/workflows/submission.yml@a09f5c38ee58bf92c459b974b174ff4063ebea5f
+    with:
+      repository: thonmay/thesis-lean
+      commit: ${{ inputs.commit }}
+      pipeline_commit: a09f5c38ee58bf92c459b974b174ff4063ebea5f
+      request_id: preflight-${{ github.run_id }}
+      mode: full
+      execution_profile: ""
+      options: '{"comparator_config_path": "comparator.json"}'
+    permissions:
+      contents: read
