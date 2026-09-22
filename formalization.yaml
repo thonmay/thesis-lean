@@ -1,0 +1,175 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml v0.4
+version: "v0.4"
+
+project:
+  name: "Dynamic MCS Ordering Maintenance"
+  description: >-
+    A fully-dynamic Maximum-Cardinality-Search (MCS) ordering algorithm that,
+    on a single-edge insertion or deletion into a loop-free undirected graph,
+    probes the affected window between the two endpoints for the first step at
+    which the current ordering's choice stops being a legal MCS pick, and only
+    then regreedies the suffix (probe-then-repair). Correctness - every order
+    produced stays a valid MCS ordering of the updated graph - and per-update
+    cost O(n + m) with an explicit cost measure (probe length plus suffix
+    regreedy work) are both machine-checked in Lean 4 / Mathlib.
+  authors:
+    - "Md Thoriqul Islam Thonmay"
+  license: "Apache-2.0"
+  responsible_maintainers:
+    - "Md Thoriqul Islam Thonmay"
+
+classification:
+  arxiv: ["cs.DS", "math.CO"]
+  msc2020: ["05C85", "68Q25"]
+
+sources:
+  - title: >-
+      Dynamic Maximum-Cardinality-Search ordering maintenance under
+      single-edge insertions and deletions (probe-then-repair algorithm)
+    type: original-proof
+    relationship: other
+    note: >-
+      First presentation of this dynamic-MCS-maintenance result: the
+      probe-then-repair strategy, its correctness, and its O(n + m) per-update
+      cost measure. Formalized and proved here in Lean 4 / Mathlib.
+    authors:
+      - "Md Thoriqul Islam Thonmay"
+  - title: "Maximum cardinality search: a general-purpose heuristic"
+    relationship: background
+    note: >-
+      Background reference for the Maximum-Cardinality-Search ordering and the
+      bucket / Rose-Tarjan recomputation used for the regreedy step. The core
+      MCS definition (pick as next the unchosen vertex with maximum number of
+      already-chosen neighbors, ties broken by lowest index) is standard.
+    authors:
+      - "Robert Tarjan"
+      - "Mihalis Yannakakis"
+
+related_formalizations: []
+
+status:
+  scope: >-
+    Formalized for any finite n: the abstract UGraph (loop-free, symmetric
+    finite graph on Fin n), the MCS legality predicate IsMCSNext (max-cardinal
+    unchosen vertex, lowest-index tie-break), valid-MCS-ordering, the
+    probe-then-repair init/insert/delete updates, and the correctness theorems
+    init_valid / insert_update_valid / delete_update_valid together with
+    greedySuffix_full and update_from_prefix. Per-update cost is formalized
+    with the explicit measures insertCost / deleteCost and bounded by c*(n+m)
+    in insert_complexity / delete_complexity. The executable boolean-adjacency
+    recomputation is connected to the abstract graph by
+    setEdge_preserves_symm / setEdge_preserves_loopless,
+    mcsOrder_eq_greedySuffix, exec_insert_valid and exec_delete_valid. All
+    headline theorems in Solution.lean are proved with no sorry; Challenge.lean
+    restates them with deliberate sorry bodies for the comparator.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: ["propext", "Quot.sound", "Classical.choice"]
+
+automation:
+  methods:
+    - method: "agent"
+      models: ["deepseek-ai/DeepSeek-V4-Flash-0731"]
+      framework: "enlcode agent harness over Lean 4 / lean4-repl / lean-lsp"
+      tool_setup: >-
+        AI-assisted interactive proving against mathlib v4.34.0 on a remote
+        96-core host (lake build + leanchecker), plus manual reasoning and
+        restructuring of the proof development.
+      cost:
+        wall_time: "many developer-hours across repeated proof rounds"
+        spend_usd: "not tracked"
+        hardware: "remote dedicated 96-core build host (API access)"
+      prompting_notes: >-
+        Statement-first staged development (definitions -> lemma statements ->
+        proofs one at a time), interactive goal exploration with lean4-repl,
+        and per-file lake build checks.
+  spend_usd: "not tracked"
+  notes: >-
+    The proof development was carried out interactively with AI assistance
+    (this agent harness) and manually checked with lake build and leanchecker on
+    every stage. The palette of transport / bridge lemmas was written by hand
+    and each intermediate lemma verified independently.
+
+fidelity:
+  divergences: >-
+    The MCS tie-breaking rule is fixed to lowest vertex index; the standard
+    literature statement allows an arbitrary (but fixed) tie-break, so this is
+    equivalent and explicit here. The cost measure is an explicit
+    implementation-level quantity (probe length plus suffix regreedy work), not
+    an abstract big-O constant; boundedness by c*(n+m) is what is proved.
+
+review:
+  status: "submitted"
+  reviewers:
+    - "Md Thoriqul Islam Thonmay"
+  notes: >-
+    Every headline theorem statement in Solution.lean was audited to be
+    verbatim-identical to its Challenge.lean counterpart (same namespace
+    Challenge, same types), and each proof builds under lake build with the
+    leanchecker kernel checker passing and no sorry / axiom / admit / unsafe in
+    the Solution module.
+
+alignment:
+  namespace: "Challenge"
+  statements:
+    - source: "Dynamic MCS init produces a valid MCS ordering"
+      lean: "Challenge.init_valid"
+      module: "Solution"
+      status: "proved"
+      note: >-
+        A converged probe-then-repair init (full deterministic greedy from the
+        empty prefix) yields an ordering satisfying IsMCSOrdering on the input
+        graph.
+    - source: "Correctness of the insertion update"
+      lean: "Challenge.insert_update_valid"
+      module: "Solution"
+      status: "proved"
+      note: "After inserting edge {u,v}, insertUpdate produces a valid MCS ordering of the updated graph."
+    - source: "Correctness of the deletion update"
+      lean: "Challenge.delete_update_valid"
+      module: "Solution"
+      status: "proved"
+      note: "After deleting edge {u,v}, deleteUpdate produces a valid MCS ordering of the updated graph."
+    - source: "Regreedy from a full prefix is the identity"
+      lean: "Challenge.greedySuffix_full"
+      module: "Solution"
+      status: "proved"
+    - source: "Regreedy from a legal prefix yields a valid MCS ordering"
+      lean: "Challenge.update_from_prefix"
+      module: "Solution"
+      status: "proved"
+    - source: "Insertion update cost is O(n + m)"
+      lean: "Challenge.insert_complexity"
+      module: "Solution"
+      status: "proved"
+    - source: "Deletion update cost is O(n + m)"
+      lean: "Challenge.delete_complexity"
+      module: "Solution"
+      status: "proved"
+    - source: "setEdge preserves matrix symmetry"
+      lean: "Challenge.setEdge_preserves_symm"
+      module: "Solution"
+      status: "proved"
+    - source: "setEdge preserves loop-freeness"
+      lean: "Challenge.setEdge_preserves_loopless"
+      module: "Solution"
+      status: "proved"
+    - source: "Executable mcsOrder equals the greedy suffix ordering"
+      lean: "Challenge.mcsOrder_eq_greedySuffix"
+      module: "Solution"
+      status: "proved"
+    - source: "Executable insertion produces a valid MCS ordering"
+      lean: "Challenge.exec_insert_valid"
+      module: "Solution"
+      status: "proved"
+    - source: "Executable deletion produces a valid MCS ordering"
+      lean: "Challenge.exec_delete_valid"
+      module: "Solution"
+      status: "proved"
+
+acknowledgements: >-
+  Built on mathlib v4.34.0 and Lean 4.34.0. The verification pipeline uses the
+  lean4-repl and leanchecker tooling. The dynamic-graph-algorithms evolutionary
+  repair harness (generation, repair, and verification roles) developed the
+  candidate that this module formalizes.

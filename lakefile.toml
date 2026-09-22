@@ -16,3 +16,9 @@ rev = "v4.34.0"
 
 [[lean_lib]]
 name = "ThesisLean"
+
+[[lean_lib]]
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"
