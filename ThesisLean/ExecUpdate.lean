@@ -362,9 +362,7 @@ theorem exec_insert_update_eq (u v : Fin n) (ord : List (Fin n))
   | some k =>
       have habs : insertUpdate (toUGraph a' hsymm' hloop') ord u v =
           greedySuffix (toUGraph a' hsymm' hloop') (ord.take k) := by
-        unfold insertUpdate
-        rw [hw]
-        rfl
+        simp only [insertUpdate, hw, Option.getD_some]
       have hv := insert_update_valid u v ord hflip hvalid
       rw [habs] at hv
       unfold greedySuffix at hv
@@ -417,7 +415,7 @@ theorem exec_delete_update_eq (u v : Fin n) (ord : List (Fin n))
   unfold execDeleteUpdate
   rw [hl, hw, show (ord.map Fin.val).take (laterPos ord u v) =
     (ord.take (laterPos ord u v)).map Fin.val by simp [List.map_take]]
-  unfold deleteUpdate deletionBreaks isFalse at hvalid' ⊢
+  unfold deleteUpdate deletionBreaks UGraph.isFalse at hvalid' ⊢
   by_cases hlegal : IsMCSNext (toUGraph a' hsymm' hloop')
       (ord.take (laterPos ord u v)).toFinset (laterVert ord u v)
   · simp [hiff.2 hlegal, hlegal]
@@ -527,8 +525,7 @@ lemma regreedyC_snd_le (pref : List ℕ) : (regreedyC a pref).2 ≤ a.length - p
 
 theorem execInsertUpdateC_fst (u v : ℕ) :
     (execInsertUpdateC a o u v).1 = execInsertUpdate a o u v := by
-  unfold execInsertUpdateC execInsertUpdate insertProbeC insertProbe
-  rw [execFirstBreakC_fst]
+  simp only [execInsertUpdateC, execInsertUpdate, insertProbeC, insertProbe, execFirstBreakC_fst]
   cases execFirstBreak a o (execEarlierPos o u v + 1) (insertWindow o u v) with
   | none => rfl
   | some k => simp [regreedyC_fst]
@@ -546,10 +543,11 @@ lemma insertWindow_length_le (u v : ℕ) :
 length `laterPos - earlierPos` and performs no regreedy. -/
 theorem exec_insert_cost_of_no_break (u v : ℕ) (h : insertProbe a o u v = none) :
     (execInsertUpdateC a o u v).2 ≤ execLaterPos o u v - execEarlierPos o u v := by
-  unfold execInsertUpdateC insertProbeC
   unfold insertProbe at h
-  rw [execFirstBreakC_fst, h]
-  exact (execFirstBreakC_snd_le a o _ _).trans (insertWindow_length_le o u v)
+  have hle := (execFirstBreakC_snd_le a o (execEarlierPos o u v + 1) (insertWindow o u v)).trans
+    (insertWindow_length_le o u v)
+  simp only [execInsertUpdateC, insertProbeC, execFirstBreakC_fst, h]
+  exact hle
 
 /-- If the insertion probe breaks at position `k`, the update costs the
 `k - earlierPos` probe checks plus at most `n - k` regreedy steps. -/
@@ -564,9 +562,7 @@ theorem exec_insert_cost_of_break (u v k : ℕ) (h : insertProbe a o u v = some 
     omega
   have hr := regreedyC_snd_le a (o.take k)
   rw [hko] at hr
-  unfold execInsertUpdateC insertProbeC
-  rw [execFirstBreakC_fst, h]
-  simp only
+  simp only [execInsertUpdateC, insertProbeC, execFirstBreakC_fst, h]
   rw [hcost]
   omega
 

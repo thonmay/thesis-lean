@@ -41,8 +41,8 @@ theorem IsMCSOrdering_unique {o₁ o₂ : List (Vert n)}
         rw [List.take_succ, List.take_succ, ih]
         congr 1
         by_cases hi : i < n
-        · have hi₁ : i < o₁.length := h₁.2.1 ▸ hi
-          have hi₂ : i < o₂.length := h₂.2.1 ▸ hi
+        · have hi₁ : i < o₁.length := by rw [h₁.2.1]; exact hi
+          have hi₂ : i < o₂.length := by rw [h₂.2.1]; exact hi
           have s₁ := h₁.2.2 i hi₁
           have s₂ := h₂.2.2 i hi₂
           rw [ih] at s₁
@@ -61,7 +61,7 @@ theorem IsMCSNext.toAny {S : Finset (Vert n)} {w : Vert n} (h : IsMCSNext G S w)
 
 theorem IsMCSOrdering.toAny {order : List (Vert n)} (h : IsMCSOrdering G order) :
     IsMCSOrderingAny G order :=
-  ⟨h.1, h.2.1, fun i hi => (h.2.2 i hi).toAny⟩
+  ⟨h.1, h.2.1, fun i hi => IsMCSNext.toAny (h.2.2 i hi)⟩
 
 /-! ## Correctness -/
 
@@ -213,8 +213,7 @@ theorem insert_update_of_no_break (u v : Vert n) (order : List (Vert n))
     (hvalid : IsMCSOrdering G order)
     (h : firstBreakWindow G' order (earlierPos order u v + 1) (laterPos order u v) = none) :
     insertUpdate G' order u v = order := by
-  unfold insertUpdate
-  rw [h, Option.getD_none, List.take_length]
+  simp only [insertUpdate, h, Option.getD_none, List.take_length]
   exact greedySuffix_full G' order (order_toFinset_univ hvalid)
 
 /-- If the deletion probe does not fire, the deletion update returns `order`
