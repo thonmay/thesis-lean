@@ -15,6 +15,7 @@ Fix every item of the 2026-09-23 Palomar automated review by changing the Lean r
 - Authorship: **you + supervisor**; the supervisor is also the independent reviewer.
 - No prior stability work or harness exists in `thesis-lean` or `ai-dynamic-graph-algorithms`. It is built here.
 - Rule for every reviewer either/or: **fix the Lean; never resolve an item by disclosure alone.**
+- **Supervisor sign-off (2026-09-23):** P0, P1 and P2 approved as planned. P3, P4 and P5 each need a **supervisor audit before anything is submitted publicly**: we finish our own validation, send an audit package, and wait for written sign-off.
 
 ## 1. Findings
 
@@ -167,7 +168,8 @@ The verdict's G={01,02}, F={03,13} is not a counterexample (`0,2,1,3,4` is valid
    - **automation: add this session's tooling (Devin agent + model)** next to the DeepSeek harness
    - axioms taken from the `AxiomAudit` output
 3. Gates: local `lake build`, CI build + leanchecker + AxiomAudit, then the **Palomar Preflight** workflow on the exact commit. Push only when you say so.
-4. Submit the commit with the ID blank.
+4. **Gate A (supervisor audit).** Send audit package A (§3a). Do not submit until the supervisor signs off in writing. Fix any findings, re-run the gates, re-send if the commit changed.
+5. Submit the audited commit (exact hash) with the ID blank.
    - After the new submission is accepted into review, withdraw the old v3 submission (your action; irreversible).
    - If it passes: decide on "Register this result" (makes the record, repo and commit public).
 
@@ -181,15 +183,26 @@ The verdict's G={01,02}, F={03,13} is not a counterexample (`0,2,1,3,4` is valid
 - The introduction states that the worst case equals static O(n+m) recomputation.
 - Empirical section: window and suffix sizes on random / sparse / chordal families (harness extension, Python mirror cross-checked against Lean `#eval`). Any "typically small" claim is backed by this data or dropped.
 - Code and data availability: repo commit, Palomar record, AI-use statement. The supervisor provides the arXiv endorsement.
+- **Gate B (supervisor audit).** Send audit package B (§3a). Upload to arXiv only after written sign-off on the exact PDF and source.
 
 ### P5: VibeMathed
 - **Route 1 (preferred):** a pre-existing open question from P0 that is answered in the preprint.
 - **Route 2 (fallback):** the stability question, disclosed as posed-and-answered, AI tier as disclosed, Lean-verified via Palomar; expect low significance. If only outcome B is reached, submit it as "partial".
 - Run it through the auditor skill first.
+- **Gate C (supervisor audit).** Send audit package C (§3a). Submit only after written sign-off.
 
 ### P6: Thesis and dissemination
 - Update the ELTE thesis chapter to the new theorem set (tie-break split, locality, stability) so the thesis, Palomar and arXiv agree.
-- After P3–P5 are live: LinkedIn/X thread, ResearchGate/Academia mirror of the arXiv PDF, Lean Zulip post. Wording copied from the abstract.
+- After P3–P5 are live and audited: LinkedIn/X thread, ResearchGate/Academia mirror of the arXiv PDF, Lean Zulip post. Wording copied from the abstract.
+
+### 3a. Supervisor audit packages (our own validation first, then send)
+| Gate | Before | Package contents (all tied to one exact commit hash) |
+|---|---|---|
+| A | Palomar submit (P3.5) | commit hash; green CI run (build + leanchecker + AxiomAudit) and Palomar Preflight links; `AxiomAudit` output; comparator list with a one-line informal reading of each statement; `Challenge.lean`↔`SolutionBridge.lean` definition-diff check; `formalization.yaml` diff vs v3 with a mapping to review items 1–5; `docs/LITERATURE.md`; `docs/stability-data.md` + harness command |
+| B | arXiv upload (P4) | PDF + LaTeX source; claim-by-claim table (paper claim → Lean theorem name or "paper proof / conjecture"); Palomar record link; harness data; AI-use statement; author list |
+| C | VibeMathed submit (P5) | draft entry text (question, source, earliest reference, status, AI tier, verification rung); auditor-skill report; links to arXiv and Palomar |
+
+Own validation before sending any package: every gate in §4 green on that exact commit/PDF, with no unresolved TODOs. Record each sign-off in `docs/audit-log.md` (date, gate, commit/PDF hash, findings, resolution).
 
 ## 4. Verification
 - Lean, every step: `lake build`; no `sorry`/`admit`/`native_decide` outside `Challenge.lean`; `lake env lean AxiomAudit.lean` shows only the permitted axioms.
@@ -201,8 +214,8 @@ The verdict's G={01,02}, F={03,13} is not a counterexample (`0,2,1,3,4` is valid
 P1.1 → P1.2 → P1.3 → (P1.4, P1.5) → P1.6 → P1.7 → P1.8 → P2.3 → P3. P0 and P2.1–2.2 run in parallel with P1.
 - Exit P1: all review items 3 and 4 fixed in Lean.
 - Exit P2: floor outcome B done.
-- Exit P3: Palomar passes.
-- P4 → P5 → P6 follow in that order.
+- Exit P3: Gate A signed off, then Palomar passes.
+- P4 (Gate B) → P5 (Gate C) → P6 follow in that order; no public step without the matching sign-off.
 
 ## 6. Risks
 - Lockstep edits across three namespace copies: mitigated by changing one definition at a time and re-proving its transport lemma immediately.
