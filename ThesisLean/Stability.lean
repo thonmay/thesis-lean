@@ -225,7 +225,7 @@ lemma neigh_ofEdges (E : List (ℕ × ℕ)) (L : List (Fin n)) (hL : L.Nodup) (w
     (ofEdges n E).neigh L.toFinset w = cntB E L w := by
   rw [neigh_eq_card, cntB, ← List.toFinset_card_of_nodup (hL.filter _), List.toFinset_filter]
   congr 1
-  exact Finset.filter_congr (fun y _ => by simp)
+  exact Finset.ext fun y => by simp [Finset.mem_filter]
 
 lemma stepB_of_any (E : List (ℕ × ℕ)) (L : List (Fin n)) (hL : L.Nodup) (w : Fin n)
     (h : IsMCSNextAny (ofEdges n E) L.toFinset w) : stepB E L w = true := by

@@ -166,8 +166,11 @@ theorem pickAt_spec (P : List (Fin n)) (hP : P.Nodup) (hlt : P.length < n) :
     simp at hxm
   have hbest := McsInvariant.bestPick_IsMCSNext n a hsymmE hloopE _ _ hinv hrem
   rw [chosenFin_map_val] at hbest
-  refine ⟨⟨Exec.bestPick a (P.map Fin.val) (remOf n (P.map Fin.val)),
-    hinv.2.2.2.1 _ (BridgeSteps.bestPick_lex a _ _ hrem).1⟩, ?_, ?_⟩
+  obtain ⟨hmem, _, _⟩ :=
+    BridgeSteps.bestPick_lex a (P.map Fin.val) (remOf n (P.map Fin.val)) hrem
+  have hlt' : Exec.bestPick a (P.map Fin.val) (remOf n (P.map Fin.val)) < n :=
+    hinv.2.2.2.1 _ hmem
+  refine ⟨@Fin.mk n (Exec.bestPick a (P.map Fin.val) (remOf n (P.map Fin.val))) hlt', ?_, ?_⟩
   · show bestPick a (P.map Fin.val) (remOf a.length (P.map Fin.val)) = _
     rw [ha, bestPick_eq]
   · rw [IsMCSNext_toDyn, toUGraph_toDyn]
@@ -310,8 +313,11 @@ lemma mem_of_valid {G : UGraph n} {ord : List (Fin n)} (h : IsMCSOrdering G ord)
   List.mem_toFinset.1 ((order_toFinset_univ h).symm ▸ Finset.mem_univ x)
 
 lemma idxOf_lt_of_valid {G : UGraph n} {ord : List (Fin n)} (h : IsMCSOrdering G ord) (x : Fin n) :
-    ord.idxOf x < n :=
-  h.2.1 ▸ List.idxOf_lt_length_of_mem (mem_of_valid h x)
+    ord.idxOf x < n := by
+  have hlen : ord.length = n := h.2.1
+  have hlt : ord.idxOf x < ord.length := List.idxOf_lt_length_of_mem (mem_of_valid h x)
+  rw [hlen] at hlt
+  exact hlt
 
 include hsymm' hloop' ha' in
 theorem insertProbe_map (u v : Fin n) (ord : List (Fin n))
@@ -418,7 +424,8 @@ theorem exec_delete_update_eq (u v : Fin n) (ord : List (Fin n))
   unfold deleteUpdate deletionBreaks UGraph.isFalse at hvalid' ⊢
   by_cases hlegal : IsMCSNext (toUGraph a' hsymm' hloop')
       (ord.take (laterPos ord u v)).toFinset (laterVert ord u v)
-  · simp [hiff.2 hlegal, hlegal]
+  · rw [hiff.2 hlegal]
+    simp [hlegal]
   · simp only [hlegal, ↓reduceIte] at hvalid' ⊢
     rw [if_neg (mt hiff.1 hlegal)]
     unfold greedySuffix at hvalid'
@@ -506,13 +513,10 @@ lemma foldl_mcsStepC : ∀ (l : List ℕ) (st : List ℕ × List ℕ) (c : ℕ),
   | nil => intro st c; simp
   | cons x l ih =>
       intro st c
-      simp only [List.foldl_cons]
+      simp only [List.foldl_cons, List.length_cons]
+      rw [← mcsStepC_fst]
       obtain ⟨h1, h2⟩ := ih (mcsStepC a st).1 (c + (mcsStepC a st).2)
-      rw [mcsStepC_fst] at h1
-      refine ⟨h1, ?_⟩
-      have := mcsStepC_snd_le a st
-      simp only [List.length_cons]
-      omega
+      exact ⟨h1, le_trans h2 (by have := mcsStepC_snd_le a st; omega)⟩
 
 lemma regreedyC_fst (pref : List ℕ) : (regreedyC a pref).1 = regreedy a pref := by
   simp only [regreedyC, regreedy, (foldl_mcsStepC a _ _ 0).1]
