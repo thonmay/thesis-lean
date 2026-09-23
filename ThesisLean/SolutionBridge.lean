@@ -62,15 +62,14 @@ lemma firstBreakAux_take (H : UGraph n) (order : List (Vert n)) :
           cases h : firstBreakAux H order k (x :: xs) with
           | none => simp [firstBreakAux]
           | some j =>
-              have := firstBreakAux_ge H order k j (x :: xs) h
-              simp [firstBreakAux]
-              omega
+              have hkj := firstBreakAux_ge H order k j (x :: xs) h
+              have hnot : ¬ j < k := by omega
+              simp [firstBreakAux, hnot]
       | succ m =>
           by_cases hx : IsMCSNext H (order.take k).toFinset x
-          · rw [List.take_succ_cons, firstBreakAux, if_pos hx, firstBreakAux, if_pos hx, ih,
-              show k + (m + 1) = k + 1 + m by omega]
-          · rw [List.take_succ_cons, firstBreakAux, if_neg hx, firstBreakAux, if_neg hx]
-            simp
+          · simp only [List.take_succ_cons, firstBreakAux, hx, ↓reduceIte]
+            rw [ih, show k + (m + 1) = k + 1 + m by omega]
+          · simp [List.take_succ_cons, firstBreakAux, hx]
 
 /-- The bounded window probe equals the full-suffix scan filtered to the
 window: stopping the scan at `k1` loses nothing. -/
@@ -83,10 +82,8 @@ theorem firstBreakWindow_eq_scan (H : UGraph n) (order : List (Vert n)) (k0 k1 :
   | none => rfl
   | some j =>
       have := firstBreakAux_ge H order k0 j _ h
-      simp only [Option.filter_some]
-      by_cases hj : j ≤ k1
-      · rw [if_pos (by simpa using (by omega : j < k0 + (k1 + 1 - k0))), if_pos (by simpa using hj)]
-      · rw [if_neg (by simpa using (by omega : ¬ j < k0 + (k1 + 1 - k0))), if_neg (by simpa using hj)]
+      simp only [Option.filter_some, decide_eq_true_eq]
+      split_ifs <;> first | rfl | (exfalso; omega)
 
 end UGraph
 
@@ -235,7 +232,7 @@ lemma firstBreak_eq (H : UGraph n) (order : List (Vert n)) (k0 : ℕ) :
 /-- The deletion probe computes equal booleans across the namespaces. -/
 lemma deletionBreaks_eq (H : UGraph n) (order : List (Vert n)) (u v : Vert n) :
     deletionBreaks H order u v = DynamicMCS.Eea71821.deletionBreaks (toDyn H) order u v := by
-  unfold deletionBreaks DynamicMCS.Eea71821.deletionBreaks isFalse DynamicMCS.Eea71821.isFalse
+  unfold deletionBreaks DynamicMCS.Eea71821.deletionBreaks UGraph.isFalse DynamicMCS.Eea71821.isFalse
   rw [← laterPos_eq, ← laterVert_eq]
   by_cases h : IsMCSNext H (order.take (laterPos order u v)).toFinset (laterVert order u v)
   · rw [if_pos h, if_pos ((IsMCSNext_toDyn _ _ _).1 h)]
@@ -250,9 +247,7 @@ lemma firstBreakWindow_eq (H : UGraph n) (order : List (Vert n)) (k0 k1 : ℕ) :
   cases DynamicMCS.Eea71821.firstBreak (toDyn H) order k0 with
   | none => rfl
   | some j =>
-      by_cases hj : j ≤ k1
-      · simp [hj]
-      · simp [hj]
+      by_cases hj : j ≤ k1 <;> simp [hj] <;> omega
 
 /-- `initOrder` computes equal lists across the namespaces. -/
 lemma initOrder_eq (G : UGraph n) :
@@ -340,7 +335,7 @@ lemma bestPick_eq (a : Adj n) (chosen : List ℕ) (rem : List ℕ) :
   induction rem with
   | nil => rfl
   | cons v vs ih =>
-      simp [List.foldl, cardC_eq, ih]
+      simp [List.foldl, cardC_eq]
 
 /-- Executable `mcsStep` agrees with the project's. -/
 lemma mcsStep_eq (a : Adj n) (st : List ℕ × List ℕ) :
