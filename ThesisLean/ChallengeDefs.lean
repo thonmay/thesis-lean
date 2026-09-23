@@ -1,13 +1,13 @@
 import Mathlib
 
 /-!
-# Challenge: dynamic MCS ordering maintenance
+# Challenge definitions (verbatim source for `Challenge.lean`)
 
-Statements (with `sorry` bodies) of the headline results; `Solution.lean`
-proves each one under the same name and type.
-
-The definitions block below is byte-identical to `ThesisLean/ChallengeDefs.lean`
-(checked by `scripts/check_challenge_defs.sh`), which `Solution.lean` imports.
+This module imports only Mathlib and contains exactly the definitions that
+`Challenge.lean` states its theorems about.  `Challenge.lean` reproduces this
+file verbatim between the `BEGIN DEFS` / `END DEFS` markers (checked by
+`scripts/check_challenge_defs.sh`), and `Solution.lean` imports this module, so
+the comparator sees identical definitions on both sides.
 -/
 
 -- BEGIN DEFS
@@ -372,112 +372,3 @@ def execDeleteUpdateC (a : Adj n) (order : List ℕ) (u v : ℕ) : List ℕ × �
 
 end Challenge
 -- END DEFS
-
-namespace Challenge
-
-open UGraph
-
-variable {n : ℕ} {G G' : UGraph n}
-
-/-- `setEdge` preserves the symmetry of the adjacency matrix, provided the
-matrix is well-shaped. -/
-theorem setEdge_preserves_symm (n : ℕ) (a : Adj n) (u v : ℕ) (present : Bool)
-    (hshape : WellShaped n a)
-    (hsymm : ∀ i j : ℕ, getAdj a i j = getAdj a j i) :
-    ∀ x y : ℕ,
-      getAdj (setEdge n a u v present) x y =
-        getAdj (setEdge n a u v present) y x := by
-  sorry
-
-/-- `setEdge` preserves loop-freeness of the matrix, provided the two flipped
-indices are distinct. -/
-theorem setEdge_preserves_loopless (n : ℕ) (a : Adj n) (u v : ℕ) (present : Bool)
-    (hshape : WellShaped n a)
-    (hloop : ∀ i : ℕ, getAdj a i i = false) (huv : u ≠ v) :
-    ∀ x : ℕ, getAdj (setEdge n a u v present) x x = false := by
-  sorry
-
-/-- Initialising the data structure on a graph yields a valid MCS ordering. -/
-theorem init_valid (G : UGraph n) : IsMCSOrdering G (initOrder G) := by
-  sorry
-
-/-- After inserting an edge, the updated ordering computed by `insertUpdate`
-is a valid MCS ordering of the new graph. -/
-theorem insert_update_valid (u v : Vert n) (order : List (Vert n))
-    (hflip : FlipOf G G' u v) (hinsert : ¬ G.adj u v) (hinsert' : G'.adj u v)
-    (hvalid : IsMCSOrdering G order) :
-    IsMCSOrdering G' (insertUpdate G' order u v) := by
-  sorry
-
-/-- After deleting an edge, the updated ordering computed by `deleteUpdate`
-is a valid MCS ordering of the new graph. -/
-theorem delete_update_valid (u v : Vert n) (order : List (Vert n))
-    (hflip : FlipOf G G' u v) (hdel : G.adj u v) (hdel' : ¬ G'.adj u v)
-    (hvalid : IsMCSOrdering G order) :
-    IsMCSOrdering G' (deleteUpdate G' order u v) := by
-  sorry
-
-/-- Regreeding from a full prefix is the identity: any ordering containing
-every vertex, greedily regreedied, is unchanged. -/
-theorem greedySuffix_full (H : UGraph n) (order : List (Vert n))
-    (h : order.toFinset = (Finset.univ : Finset (Vert n))) :
-    greedySuffix H order = order := by
-  sorry
-
-/-- Regreeding from a legal prefix yields a valid MCS ordering. -/
-theorem update_from_prefix (order : List (Vert n)) (k : ℕ)
-    (hvalid : IsMCSOrdering G order)
-    (hsteps : ∀ i (hi : i < order.length), i < k →
-      IsMCSNext G' (order.take i).toFinset (order.get ⟨i, hi⟩)) :
-    IsMCSOrdering G' (greedySuffix G' (order.take k)) := by
-  sorry
-
-/-- The executable recomputation of the MCS ordering from a concrete boolean
-adjacency matrix yields a list of vertices that is a valid MCS ordering of
-the abstract graph the matrix denotes, and its values equal the executable
-output. -/
-theorem mcsOrder_eq_greedySuffix
-    (a : Adj n)
-    (hsymm : ∀ u v : ℕ, getAdj a u v = getAdj a v u)
-    (hloop : ∀ u : ℕ, getAdj a u u = false)
-    (ha_len : a.length = n) :
-    let G := toUGraph a hsymm hloop
-    ∃ (ord : List (Vert n)),
-      IsMCSOrdering G ord ∧
-      ord.map (fun v => v.val) = mcsOrder a := by
-  sorry
-
-/-- After an executable edge insertion, the recomputed `mcsOrder` of the new
-matrix is a valid abstract MCS ordering of the new graph, and its values are
-exactly the executable output. -/
-theorem exec_insert_valid (n : ℕ) (a : Adj n) (u v : Vert n)
-    (hsymm : ∀ i j : ℕ, getAdj a i j = getAdj a j i)
-    (hloop : ∀ i : ℕ, getAdj a i i = false)
-    (hshape : WellShaped n a)
-    (huv : u.val ≠ v.val) :
-    let a' := insertEdge n a u.val v.val
-    let G' := toUGraph a'
-      (setEdge_preserves_symm n a u.val v.val true hshape hsymm)
-      (setEdge_preserves_loopless n a u.val v.val true hshape hloop huv)
-    ∃ (ord : List (Vert n)),
-      IsMCSOrdering G' ord ∧
-        ord.map (fun w => w.val) = mcsOrder a' := by
-  sorry
-
-/-- After an executable edge deletion, the recomputed `mcsOrder` of the new
-matrix is a valid abstract MCS ordering of the new graph. -/
-theorem exec_delete_valid (n : ℕ) (a : Adj n) (u v : Vert n)
-    (hsymm : ∀ i j : ℕ, getAdj a i j = getAdj a j i)
-    (hloop : ∀ i : ℕ, getAdj a i i = false)
-    (hshape : WellShaped n a)
-    (huv : u.val ≠ v.val) :
-    let a' := deleteEdge n a u.val v.val
-    let G' := toUGraph a'
-      (setEdge_preserves_symm n a u.val v.val false hshape hsymm)
-      (setEdge_preserves_loopless n a u.val v.val false hshape hloop huv)
-    ∃ (ord : List (Vert n)),
-      IsMCSOrdering G' ord ∧
-        ord.map (fun w => w.val) = mcsOrder a' := by
-  sorry
-
-end Challenge

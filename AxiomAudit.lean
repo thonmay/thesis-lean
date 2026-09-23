@@ -1,21 +1,24 @@
-import ThesisLean
+import Solution
 
 /-!
-# Headline theorem axiom audit
+# Axiom audit of the comparator theorems
 
-Compiled so the trusted assumptions of the dynamic-MCS correctness results are
-printed in one reviewable place. Run with:
-
-    lake env lean AxiomAudit.lean
-
-Each result must depend only on `propext`, `Classical.choice`, `Quot.sound`
-(mathlib's standard axioms). Any `sorryAx` or project axiom means the proof is
-not honest.
+Prints the axioms each theorem listed in `comparator.json` depends on, as
+proved in `Solution.lean`.  Run with `lake env lean AxiomAudit.lean`;
+`scripts/check_axioms.sh` fails unless every line lists only `propext`,
+`Classical.choice` and `Quot.sound`, and unless the names below are exactly
+the comparator list.
 -/
 
-#print axioms DynamicMCS.UGraph.mcsLoop_valid
-#print axioms DynamicMCS.UGraph.greedySuffix_valid
-#print axioms DynamicMCS.UGraph.mcsUpdate_preserves_invariant
-#print axioms DynamicMCS.UGraph.insert_edge_valid
-#print axioms DynamicMCS.UGraph.delete_edge_valid
-#print axioms DynamicMCS.UGraph.init_valid
+-- BEGIN AUDIT
+#print axioms Challenge.init_valid
+#print axioms Challenge.insert_update_valid
+#print axioms Challenge.delete_update_valid
+#print axioms Challenge.greedySuffix_full
+#print axioms Challenge.update_from_prefix
+#print axioms Challenge.setEdge_preserves_symm
+#print axioms Challenge.setEdge_preserves_loopless
+#print axioms Challenge.mcsOrder_eq_greedySuffix
+#print axioms Challenge.exec_insert_valid
+#print axioms Challenge.exec_delete_valid
+-- END AUDIT

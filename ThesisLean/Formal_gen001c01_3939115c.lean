@@ -85,58 +85,38 @@ def FlipOf (G G' : UGraph n) (u v : Vert n) : Prop :=
   ∀ (x y : Vert n),
     G'.adj x y = G.adj x y ∨ (x = u ∧ y = v) ∨ (x = v ∧ y = u)
 
-/-- Existence of a legal MCS pick whenever not every vertex is already
-chosen. -/
-theorem exists_IsMCSNext (G : UGraph n) (chosen : Finset (Vert n)) :
-    chosen ≠ (Finset.univ : Finset (Vert n)) → ∃ w : Vert n, IsMCSNext G chosen w := by
-  classical
-  intro hneq
-  let U : Finset (Vert n) := (Finset.univ : Finset (Vert n)) \ chosen
-  have hUnonempty : U.Nonempty := by
-    apply Finset.nonempty_iff_ne_empty.mpr
-    intro hUempty
-    apply hneq
-    apply Finset.ext
-    intro x
-    constructor
-    · intro _; exact Finset.mem_univ x
-    · intro _hxuniv
-      by_contra hx
-      have hxU : x ∈ U := by
-        exact Finset.mem_sdiff.mpr ⟨Finset.mem_univ x, hx⟩
-      have hxempty : x ∈ (∅ : Finset (Vert n)) := by
-        simpa [U, hUempty] using hxU
-      exact (Finset.notMem_empty x) hxempty
-  rcases Finset.exists_max_image U (fun x => G.neigh chosen x) hUnonempty with ⟨w0, hw0U, hw0max⟩
-  let M : Finset (Vert n) := U.filter (fun x => G.neigh chosen x = G.neigh chosen w0)
-  have hw0M : w0 ∈ M := by
-    exact Finset.mem_filter.mpr ⟨hw0U, rfl⟩
-  have hMnonempty : M.Nonempty := ⟨w0, hw0M⟩
-  let w : Vert n := M.min' hMnonempty
-  refine ⟨w, ?_⟩
-  have hwM : w ∈ M := Finset.min'_mem M hMnonempty
-  have hwU : w ∈ U := (Finset.mem_filter.mp hwM).1
-  have hwcard : G.neigh chosen w = G.neigh chosen w0 := (Finset.mem_filter.mp hwM).2
-  unfold IsMCSNext
-  constructor
-  · simpa [U] using hwU
-  constructor
-  · intro x hx
-    have hxmax : G.neigh chosen x ≤ G.neigh chosen w0 := hw0max x hx
-    rw [hwcard]
-    exact hxmax
-  · intro x hx hc
-    have hxM : x ∈ M := by
-      exact Finset.mem_filter.mpr ⟨hx, by rw [hc, hwcard]⟩
-    change M.min' hMnonempty ≤ x
-    exact Finset.min'_le M x hxM
+/-- The unchosen vertices of maximum cardinality exist whenever some vertex is
+unchosen. -/
+theorem maxUnchosen_nonempty (G : UGraph n) (chosen : Finset (Vert n))
+    (h : chosen ≠ (Finset.univ : Finset (Vert n))) :
+    (((Finset.univ : Finset (Vert n)) \ chosen).filter (fun x =>
+      G.neigh chosen x = ((Finset.univ : Finset (Vert n)) \ chosen).sup (G.neigh chosen))).Nonempty := by
+  have hU : ((Finset.univ : Finset (Vert n)) \ chosen).Nonempty :=
+    Finset.sdiff_nonempty.2 (fun hs => h (Finset.univ_subset_iff.1 hs))
+  obtain ⟨w, hw, hsup⟩ := Finset.exists_mem_eq_sup _ hU (G.neigh chosen)
+  exact ⟨w, Finset.mem_filter.2 ⟨hw, hsup.symm⟩⟩
 
-/-- The deterministic MCS pick: the least-index maximum-cardinality unchosen
-vertex.  Carried with the proof that it is a legal MCS step. -/
-noncomputable def greedyPick (G : UGraph n) (chosen : Finset (Vert n))
+/-- The canonical MCS pick: the least-index unchosen vertex of maximum
+cardinality. -/
+def mcsPick (G : UGraph n) (chosen : Finset (Vert n))
+    (h : chosen ≠ (Finset.univ : Finset (Vert n))) : Vert n :=
+  (((Finset.univ : Finset (Vert n)) \ chosen).filter (fun x =>
+    G.neigh chosen x = ((Finset.univ : Finset (Vert n)) \ chosen).sup (G.neigh chosen))).min'
+    (maxUnchosen_nonempty G chosen h)
+
+/-- The canonical pick is a legal MCS step. -/
+theorem mcsPick_isMCSNext (G : UGraph n) (chosen : Finset (Vert n))
+    (h : chosen ≠ (Finset.univ : Finset (Vert n))) :
+    IsMCSNext G chosen (mcsPick G chosen h) := by
+  have hmem := Finset.min'_mem _ (maxUnchosen_nonempty G chosen h)
+  rw [Finset.mem_filter] at hmem
+  refine ⟨hmem.1, fun x hx => hmem.2 ▸ Finset.le_sup hx, fun x hx hx' => ?_⟩
+  exact Finset.min'_le _ x (Finset.mem_filter.2 ⟨hx, hx'.trans hmem.2⟩)
+
+/-- The canonical pick, carried with its legality proof. -/
+def greedyPick (G : UGraph n) (chosen : Finset (Vert n))
     (h : chosen ≠ (Finset.univ : Finset (Vert n))) : { w : Vert n // IsMCSNext G chosen w } :=
-  ⟨Classical.choose (exists_IsMCSNext G chosen h),
-   Classical.choose_spec (exists_IsMCSNext G chosen h)⟩
+  ⟨mcsPick G chosen h, mcsPick_isMCSNext G chosen h⟩
 
 /-- Repeatedly extend `chosen` with the MCS pick until every vertex is
 chosen, with one step per unit of the counter `k`.  The invariant

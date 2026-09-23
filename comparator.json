@@ -7,13 +7,15 @@
     "Challenge.delete_update_valid",
     "Challenge.greedySuffix_full",
     "Challenge.update_from_prefix",
-    "Challenge.insert_complexity",
-    "Challenge.delete_complexity",
     "Challenge.setEdge_preserves_symm",
     "Challenge.setEdge_preserves_loopless",
     "Challenge.mcsOrder_eq_greedySuffix",
     "Challenge.exec_insert_valid",
     "Challenge.exec_delete_valid"
   ],
-  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"]
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
 }

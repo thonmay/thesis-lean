@@ -1,7 +1,7 @@
 name = "thesis-lean"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["ThesisLean"]
+defaultTargets = ["ThesisLean", "Challenge", "Solution"]
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`

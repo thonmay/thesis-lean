@@ -27,14 +27,18 @@ jobs:
           large-packages: true
           docker-images: true
           swap-storage: true
+      - name: Challenge definitions match ThesisLean/ChallengeDefs.lean
+        run: bash scripts/check_challenge_defs.sh
       - uses: leanprover/lean-action@v1
+      - name: Axiom audit of the comparator theorems
+        run: bash scripts/check_axioms.sh
       # Independent external kernel check: leanchecker (Lean4Lean) re-validates
       # every compiled module, guarding against elaborator/kernel discrepancies.
       # See https://github.com/digama0/lean4lean
       - name: Check with leanchecker (external independent kernel)
         run: |
           set -euo pipefail
-          for olean in .lake/build/lib/lean/ThesisLean/*.olean; do
+          for olean in .lake/build/lib/lean/ThesisLean/*.olean .lake/build/lib/lean/Challenge.olean .lake/build/lib/lean/Solution.olean; do
             mod="${olean%.olean}"; mod="${mod#.lake/build/lib/lean/}"; mod="${mod//\//.}"
             echo "leanchecker: $mod"
             lake env leanchecker "$mod"

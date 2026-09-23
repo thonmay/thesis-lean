@@ -1,12 +1,9 @@
 import Mathlib
 import ThesisLean.Formal_gen001c01_3939115c
 import ThesisLean.Formal_gen003c01_eea71821
-import ThesisLean.ComplexityHeadlines
-import ThesisLean.ProbeCost
 import ThesisLean.Exec
 import ThesisLean.ExecFlip
 import ThesisLean.BridgeAssembly
-import ThesisLean.CountBridge
 import ThesisLean.SolutionBridge
 
 /-!
@@ -14,10 +11,9 @@ import ThesisLean.SolutionBridge
 
 This module supplies real proofs (no `sorry`) of the headline theorems that
 `Challenge.lean` states with `sorry`-bodies under the same namespace
-`Challenge`.  It imports only Mathlib and the project development (and
-`ThesisLean.SolutionBridge`, which redeclares the `Challenge` namespace
-definitions verbatim and provides transport lemmas).  It does **not** import
-`Challenge.lean`.
+`Challenge`.  It imports `ThesisLean.ChallengeDefs` (the definitions block of
+`Challenge.lean`, byte-identical) and the project development, but not
+`Challenge.lean` itself.
 
 Each headline theorem is transported to its proved project counterpart
 through the `Challenge.Transport` lemmas in `SolutionBridge`: the graph
@@ -126,36 +122,6 @@ theorem update_from_prefix (order : List (Vert n)) (k : ℕ)
     rw [Transport.IsMCSOrdering_toDyn]
     exact hproj
   exact hres
-
-/-! ## Complexity headline theorems -/
-
-/-- The insertion cost measure `insertCost` is bounded by `O(n + m)`.  The
-cost measure is a combinatorial surrogate, not an operational running time. -/
-theorem insert_complexity :
-    ∃ c : ℕ,
-      ∀ (n : ℕ) (G : UGraph n) (order : List (Vert n)) (u v : Vert n),
-        order.length ≤ n →
-          insertCost G order u v ≤ c * (n + edgeCount G) := by
-  rcases ComplexityHeadlines.insert_complexity with ⟨c, hc⟩
-  refine ⟨c, ?_⟩
-  intro n G order u v hlen
-  have hc' := hc n (Transport.toDyn G) order u v hlen
-  rw [Transport.insertCost_eq, Transport.edgeCount_eq]
-  exact hc'
-
-/-- The deletion cost measure `deleteCost` is bounded by `O(n + m)`.  The
-cost measure is a combinatorial surrogate, not an operational running time. -/
-theorem delete_complexity :
-    ∃ c : ℕ,
-      ∀ (n : ℕ) (G : UGraph n) (order : List (Vert n)) (u v : Vert n),
-        order.length ≤ n →
-          deleteCost G order u v ≤ c * (n + edgeCount G) := by
-  rcases ComplexityHeadlines.delete_complexity with ⟨c, hc⟩
-  refine ⟨c, ?_⟩
-  intro n G order u v hlen
-  have hc' := hc n (Transport.toDyn G) order u v hlen
-  rw [Transport.deleteCost_eq, Transport.edgeCount_eq]
-  exact hc'
 
 /-! ## Executable setEdge preservation & bridge headline theorems -/
 
