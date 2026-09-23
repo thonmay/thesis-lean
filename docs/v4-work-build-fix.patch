@@ -1,0 +1,48 @@
+--- a/ThesisLean/SolutionBridge.lean
++++ b/ThesisLean/SolutionBridge.lean
+@@ -64,12 +64,12 @@
+           | some j =>
+               have hkj := firstBreakAux_ge H order k j (x :: xs) h
+               have hnot : ¬ j < k := by omega
+-              simp [firstBreakAux, hnot]
++              simp [firstBreakAux, Option.filter_some, hnot]
+       | succ m =>
+           by_cases hx : IsMCSNext H (order.take k).toFinset x
+           · simp only [List.take_succ_cons, firstBreakAux, hx, ↓reduceIte]
+             rw [ih, show k + (m + 1) = k + 1 + m by omega]
+-          · simp [List.take_succ_cons, firstBreakAux, hx]
++          · simp [List.take_succ_cons, firstBreakAux, Option.filter_some, hx]
+ 
+ /-- The bounded window probe equals the full-suffix scan filtered to the
+ window: stopping the scan at `k1` loses nothing. -/
+--- a/ThesisLean/Correctness.lean
++++ b/ThesisLean/Correctness.lean
+@@ -41,8 +41,8 @@
+         rw [List.take_succ, List.take_succ, ih]
+         congr 1
+         by_cases hi : i < n
+-        · have hi₁ : i < o₁.length := h₁.2.1 ▸ hi
+-          have hi₂ : i < o₂.length := h₂.2.1 ▸ hi
++        · have hi₁ : i < o₁.length := by rw [h₁.2.1]; exact hi
++          have hi₂ : i < o₂.length := by rw [h₂.2.1]; exact hi
+           have s₁ := h₁.2.2 i hi₁
+           have s₂ := h₂.2.2 i hi₂
+           rw [ih] at s₁
+@@ -61,7 +61,7 @@
+ 
+ theorem IsMCSOrdering.toAny {order : List (Vert n)} (h : IsMCSOrdering G order) :
+     IsMCSOrderingAny G order :=
+-  ⟨h.1, h.2.1, fun i hi => (h.2.2 i hi).toAny⟩
++  ⟨h.1, h.2.1, fun i hi => IsMCSNext.toAny (h.2.2 i hi)⟩
+ 
+ /-! ## Correctness -/
+ 
+@@ -214,7 +214,7 @@
+     (h : firstBreakWindow G' order (earlierPos order u v + 1) (laterPos order u v) = none) :
+     insertUpdate G' order u v = order := by
+   unfold insertUpdate
+-  rw [h, Option.getD_none, List.take_length]
++  rw [h, Option.getD_none]; simp [List.take_length]
+   exact greedySuffix_full G' order (order_toFinset_univ hvalid)
+ 
+ /-- If the deletion probe does not fire, the deletion update returns `order`
