@@ -7,12 +7,18 @@ project:
   description: >-
     A fully-dynamic Maximum-Cardinality-Search (MCS) ordering algorithm that,
     on a single-edge insertion or deletion into a loop-free undirected graph,
-    probes the affected window between the two endpoints for the first step at
-    which the current ordering's choice stops being a legal MCS pick, and only
-    then regreedies the suffix (probe-then-repair). Correctness - every order
+    scans the suffix from the earlier endpoint for the first step at which the
+    current ordering's choice stops being a legal MCS pick (the scan result is
+    filtered to the affected window between the two endpoints), and only then
+    regreedies the suffix (probe-then-repair). Correctness - every order
     produced stays a valid MCS ordering of the updated graph - and per-update
-    cost O(n + m) with an explicit cost measure (probe length plus suffix
-    regreedy work) are both machine-checked in Lean 4 / Mathlib.
+    combinatorial cost O(n + m) measured by an explicit cost measure (probe
+    scan length plus suffix regreedy work) are both machine-checked in Lean 4
+    / Mathlib. The cost measures are combinatorial surrogates for the
+    noncomputable greedy recomputation, not formalized operational running
+    time; the deletion cost measure over-counts relative to the actual
+    single-point deletion probe (the O(n + m) bound remains valid since a
+    single check is bounded by a full suffix scan).
   authors:
     - "Md Thoriqul Islam Thonmay"
   license: "Apache-2.0"
@@ -30,9 +36,12 @@ sources:
     type: original-proof
     relationship: other
     note: >-
-      First presentation of this dynamic-MCS-maintenance result: the
-      probe-then-repair strategy, its correctness, and its O(n + m) per-update
-      cost measure. Formalized and proved here in Lean 4 / Mathlib.
+      Formalization of the probe-then-repair strategy for dynamic MCS ordering
+      maintenance under single-edge insertions and deletions. We are not aware
+      of a prior formalization of dynamic MCS ordering maintenance in any
+      proof assistant; the algorithm itself builds on the classical MCS
+      heuristic of Tarjan and Yannakakis. The correctness theorems and the
+      O(n + m) per-update cost measure are proved here in Lean 4 / Mathlib.
     authors:
       - "Md Thoriqul Islam Thonmay"
   - title: "Maximum cardinality search: a general-purpose heuristic"
@@ -73,7 +82,7 @@ automation:
       models: ["deepseek-ai/DeepSeek-V4-Flash-0731"]
       framework: "enlcode agent harness over Lean 4 / lean4-repl / lean-lsp"
       tool_setup: >-
-        AI-assisted interactive proving against mathlib v4.34.0 on a remote
+        AI-assisted interactive proving against mathlib v4.35.0-rc2 on a remote
         96-core host (lake build + leanchecker), plus manual reasoning and
         restructuring of the proof development.
       cost:
@@ -95,12 +104,26 @@ fidelity:
   divergences: >-
     The MCS tie-breaking rule is fixed to lowest vertex index; the standard
     literature statement allows an arbitrary (but fixed) tie-break, so this is
-    equivalent and explicit here. The cost measure is an explicit
-    implementation-level quantity (probe length plus suffix regreedy work), not
-    an abstract big-O constant; boundedness by c*(n+m) is what is proved.
+    equivalent and explicit here. The cost measure is an explicit combinatorial
+    surrogate (probe scan length plus suffix regreedy work), not a formalized
+    operational running time; boundedness by c*(n+m) is what is proved. The
+    formal insertion probe scans the full suffix from the earlier endpoint and
+    filters the result to the affected window, rather than stopping at the
+    window boundary; the headline O(n+m) bound is unaffected since the full
+    suffix scan is O(n). The deletion cost measure charges a full-suffix probe
+    scan, but the actual deletion algorithm performs only a single-point
+    legality check at the later endpoint; the bound remains valid because a
+    single check is bounded by a suffix scan. The regreedy step
+    (greedySuffix) is noncomputable (Classical.choice), so the cost measure
+    stipulates the regreedy work by combinatorial fiat rather than deriving it
+    from an operational cost semantics.  The formal regreedy is a naive greedy
+    (greedySuffix via Classical.choice), not a bucket or Rose-Tarjan
+    implementation; the cost measure stipulates a bucket-style work profile
+    (one vertex-touch per suffix element, two edge-touches per incident edge)
+    by combinatorial fiat.
 
 review:
-  status: "submitted"
+  status: "author-verified"
   reviewers:
     - "Md Thoriqul Islam Thonmay"
   notes: >-
@@ -169,7 +192,7 @@ alignment:
       status: "proved"
 
 acknowledgements: >-
-  Built on mathlib v4.34.0 and Lean 4.34.0. The verification pipeline uses the
-  lean4-repl and leanchecker tooling. The dynamic-graph-algorithms evolutionary
-  repair harness (generation, repair, and verification roles) developed the
-  candidate that this module formalizes.
+  Built on mathlib v4.35.0-rc2 and Lean 4.35.0-rc2. The verification pipeline
+  uses the lean4-repl and leanchecker tooling. The dynamic-graph-algorithms
+  evolutionary repair harness (generation, repair, and verification roles)
+  developed the candidate that this module formalizes.

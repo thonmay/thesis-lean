@@ -11,15 +11,17 @@ import ThesisLean.McsInvariant
 This module realizes the informal asymptotic claims "O(n + m) per update" for
 the dynamic MCS candidate `gen003_c01` (see the module `Formal_gen003c01`)
 as *explicit, finite, division-free* bounds.  We fix two concrete cost measures,
-`insertCost` and `deleteCost`, which mirror exactly what the (bucket/bitmask)
-implementation does on an insertion or deletion of a single edge `{u, v}`:
+`insertCost` and `deleteCost`, which are combinatorial surrogates for the
+noncomputable `greedySuffix` regreedy on an insertion or deletion of a single
+edge `{u, v}`:
 
-* **probe cost** `probeCost`: the number of ordering positions the candidate
-  examines while scanning for the first step at which the old greedy choice is
+* **probe cost** `probeCost`: the number of ordering positions the scan
+  examines while searching for the first step at which the old greedy choice is
   no longer legal on the post-update graph.  This is `ProbeCost.probeCost`
-  (the recursion depth of `firstBreakAux`); for insertion the scan is over the
-  window `[earlierPos u v + 1, laterPos u v]`, for deletion over the suffix
-  from `laterPos u v`.
+  (the recursion depth of `firstBreakAux`); for insertion the scan runs over
+  the full suffix from `earlierPos u v + 1` (the result is then filtered to
+  the window `[earlierPos u v + 1, laterPos u v]`), for deletion over the
+  suffix from `laterPos u v`.
 * **regreedy work**: when a break is found, the candidate recomputes the
   suffix from the breaking step with a bucket/bitmask MCS, which touches each
   vertex of the suffix once (`(order.drop k0).length`) and each edge incident

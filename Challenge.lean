@@ -14,10 +14,14 @@ the lowest vertex index; the resulting order is a *valid MCS ordering*.
 Algorithm.  A *probe-then-repair* update.  Flipping an edge `{u, v}` changes
 selection-time cardinalities only for steps in the affected window between the
 two endpoints (insertion) or at the later endpoint (deletion).  The candidate
-probes that tight window for the first step at which the current ordering's
-choice is no longer legal on the post-update graph, and only then regreedies
-the suffix from that step (bucket / Rose-Tarjan recomputation).  The same
-adjacency structure supports insertion and deletion.
+scans the suffix from the earlier endpoint for the first step at which the
+current ordering's choice is no longer legal on the post-update graph, filters
+the result to the affected window, and only then regreedies the suffix from
+that step (the formal regreedy is the naive greedy `greedySuffix`; the cost
+measure stipulates a bucket / Rose-Tarjan work profile).  The same adjacency
+structure supports insertion and deletion.  The formal probe scans the full
+suffix rather than stopping at the window boundary; the headline O(n+m) bound
+is unaffected since the suffix scan is O(n).
 
 Definitions are restated here **verbatim** from the project development (their
 bodies are identical up to the namespace) so that the comparator can check the
@@ -204,7 +208,9 @@ def firstBreak (H : UGraph n) (order : List (Vert n)) (k0 : ℕ) : Option ℕ :=
   firstBreakAux H order k0 (order.drop k0)
 
 /-- The first breaking step inside the window `[k0, k1]`, or `none` if the
-whole window survives (the candidate's bounded `_first_break` scan). -/
+whole window survives.  Note: the underlying `firstBreak` scan examines the
+full suffix from `k0` to the end; the window bound `k1` is applied as a
+post-hoc filter on the result. -/
 def firstBreakWindow (H : UGraph n) (order : List (Vert n)) (k0 k1 : ℕ) : Option ℕ :=
   match firstBreak H order k0 with
   | some k => if k ≤ k1 then some k else none
@@ -223,9 +229,10 @@ candidate's `_regreedy` from step 0). -/
 def initOrder (H : UGraph n) : List (Vert n) :=
   greedySuffix H []
 
-/-- `insert_edge`: scan the window `[pu + 1, pv]` for the first broken step
-and regreedy from there; if the window survives, keep the whole order
-(`greedySuffix H order` is the identity on a full order). -/
+/-- `insert_edge`: scan the suffix from `pu + 1` for the first broken step,
+filter to the window `[pu + 1, pv]`, and regreedy from there; if the window
+survives, keep the whole order (`greedySuffix H order` is the identity on a
+full order). -/
 def insertUpdate (H : UGraph n) (order : List (Vert n)) (u v : Vert n) : List (Vert n) :=
   let k := Option.getD (firstBreakWindow H order (earlierPos order u v + 1)
     (laterPos order u v)) order.length
@@ -280,20 +287,25 @@ def probeCost (H : UGraph n) (order : List (Vert n)) : ℕ → List (Vert n) →
         1 + probeCost H order (k + 1) xs
       else 1
 
-/-- The explicit cost measure for an insertion of edge `{u, v}`: the probe
-scan over the window `[earlierPos u v + 1, laterPos u v]` plus, if a break is
-found at `k0` inside the window, the regreedy work on the suffix from `k0`
-(one vertex-touch per suffix element plus two edge-touches per edge incident
-to the suffix).  Mirrors `insertUpdate`. -/
+/-- The explicit cost measure for an insertion of edge `{u, v}`: a probe scan
+over the full suffix from `earlierPos u v + 1` plus, if a break is found at
+`k0` inside the window, the regreedy work on the suffix from `k0` (one
+vertex-touch per suffix element plus two edge-touches per edge incident to
+the suffix).  This is a combinatorial surrogate for the noncomputable
+`greedySuffix` regreedy, not an operational running-time measure. -/
 noncomputable def insertCost (H : UGraph n) (order : List (Vert n)) (u v : Vert n) : ℕ :=
   probeCost H order (earlierPos order u v + 1) (order.drop (earlierPos order u v + 1))
   + match firstBreakWindow H order (earlierPos order u v + 1) (laterPos order u v) with
     | none => 0
     | some k0 => (order.drop k0).length + 2 * mSuffix H (order.drop k0).toFinset
 
-/-- The explicit cost measure for a deletion of edge `{u, v}`: the probe check
-at `laterPos u v` plus, if a break is found there, the regreedy work on the
-suffix from `laterPos u v`.  Mirrors `deleteUpdate`. -/
+/-- The explicit cost measure for a deletion of edge `{u, v}`: a probe scan
+over the suffix from `laterPos u v` plus, if a break is found there, the
+regreedy work on the suffix from `laterPos u v`.  Note: the actual
+`deleteUpdate` performs only a single-point legality check at `laterPos`;
+this measure over-counts by charging a full suffix scan, which remains
+bounded by O(n).  This is a combinatorial surrogate for the noncomputable
+`greedySuffix` regreedy, not an operational running-time measure. -/
 noncomputable def deleteCost (H : UGraph n) (order : List (Vert n)) (u v : Vert n) : ℕ :=
   probeCost H order (laterPos order u v) (order.drop (laterPos order u v))
   + match firstBreak H order (laterPos order u v) with
@@ -432,8 +444,9 @@ theorem update_from_prefix (order : List (Vert n)) (k : ℕ)
     IsMCSOrdering G' (greedySuffix G' (order.take k)) := by
   sorry
 
-/-- The insertion update runs in `O(n + m)` time measured by `insertCost`,
-where `n` is the vertex count and `m` the edge count of the current graph. -/
+/-- The insertion cost measure `insertCost` is bounded by `O(n + m)`, where
+`n` is the vertex count and `m` the edge count of the current graph.  The
+cost measure is a combinatorial surrogate, not an operational running time. -/
 theorem insert_complexity :
     ∃ c : ℕ,
       ∀ (n : ℕ) (G : UGraph n) (order : List (Vert n)) (u v : Vert n),
@@ -441,7 +454,8 @@ theorem insert_complexity :
           insertCost G order u v ≤ c * (n + edgeCount G) := by
   sorry
 
-/-- The deletion update runs in `O(n + m)` time measured by `deleteCost`. -/
+/-- The deletion cost measure `deleteCost` is bounded by `O(n + m)`.  The
+cost measure is a combinatorial surrogate, not an operational running time. -/
 theorem delete_complexity :
     ∃ c : ℕ,
       ∀ (n : ℕ) (G : UGraph n) (order : List (Vert n)) (u v : Vert n),

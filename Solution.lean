@@ -129,7 +129,8 @@ theorem update_from_prefix (order : List (Vert n)) (k : ℕ)
 
 /-! ## Complexity headline theorems -/
 
-/-- The insertion update runs in `O(n + m)`. -/
+/-- The insertion cost measure `insertCost` is bounded by `O(n + m)`.  The
+cost measure is a combinatorial surrogate, not an operational running time. -/
 theorem insert_complexity :
     ∃ c : ℕ,
       ∀ (n : ℕ) (G : UGraph n) (order : List (Vert n)) (u v : Vert n),
@@ -142,7 +143,8 @@ theorem insert_complexity :
   rw [Transport.insertCost_eq, Transport.edgeCount_eq]
   exact hc'
 
-/-- The deletion update runs in `O(n + m)`. -/
+/-- The deletion cost measure `deleteCost` is bounded by `O(n + m)`.  The
+cost measure is a combinatorial surrogate, not an operational running time. -/
 theorem delete_complexity :
     ∃ c : ℕ,
       ∀ (n : ℕ) (G : UGraph n) (order : List (Vert n)) (u v : Vert n),
