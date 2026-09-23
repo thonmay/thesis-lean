@@ -99,7 +99,10 @@ status:
     stability-boundary result is proved: exists_common_ordering (neighbour
     counts differ by at most one along every prefix implies a common MCS
     ordering), with corollaries insert_matching_common_order,
-    delete_matching_common_order and flip_common_order. All headline theorems in
+    delete_matching_common_order and flip_common_order; and the matching
+    obstructions are certified by kernel decide (triangle_no_common_order,
+    p4_no_common_order, mixed_matching_no_common_order), showing the matching
+    hypothesis cannot be dropped. All headline theorems in
     Solution.lean are proved with no sorry; Challenge.lean restates them with
     deliberate sorry bodies for the comparator.
   sorry_count: 0
@@ -339,6 +342,21 @@ alignment:
       module: "Solution"
       status: "proved"
       note: "Stability: flipping a single edge leaves a common MCS ordering."
+    - source: "Stability obstruction: inserting a triangle can destroy every common MCS ordering."
+      lean: "Challenge.triangle_no_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability obstruction: inserting a triangle can destroy every common MCS ordering."
+    - source: "Stability obstruction: inserting a P4 path can destroy every common MCS ordering."
+      lean: "Challenge.p4_no_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability obstruction: inserting a P4 path can destroy every common MCS ordering."
+    - source: "Stability obstruction: a mixed matching update (one insert, one delete) can destroy every common MCS ordering."
+      lean: "Challenge.mixed_matching_no_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability obstruction: a mixed matching update (one insert, one delete) can destroy every common MCS ordering."
 
 acknowledgements: >-
   Built on mathlib v4.35.0-rc2 and Lean 4.35.0-rc2. The verification pipeline

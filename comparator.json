@@ -32,7 +32,10 @@
     "Challenge.exists_common_ordering",
     "Challenge.insert_matching_common_order",
     "Challenge.delete_matching_common_order",
-    "Challenge.flip_common_order"
+    "Challenge.flip_common_order",
+    "Challenge.triangle_no_common_order",
+    "Challenge.p4_no_common_order",
+    "Challenge.mixed_matching_no_common_order"
   ],
   "permitted_axioms": [
     "propext",

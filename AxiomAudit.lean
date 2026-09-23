@@ -42,4 +42,7 @@ the comparator list.
 #print axioms Challenge.insert_matching_common_order
 #print axioms Challenge.delete_matching_common_order
 #print axioms Challenge.flip_common_order
+#print axioms Challenge.triangle_no_common_order
+#print axioms Challenge.p4_no_common_order
+#print axioms Challenge.mixed_matching_no_common_order
 -- END AUDIT

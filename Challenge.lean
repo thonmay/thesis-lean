@@ -645,4 +645,20 @@ theorem flip_common_order : ∀ {n : ℕ} {G G' : UGraph n} {u v : Vert n},
       G.FlipOf G' u v → ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord := by
   sorry
 
+/-- Stability obstruction: inserting a triangle can destroy every common MCS ordering. -/
+theorem triangle_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 5 [(0,2),(0,4),(1,2),(1,3)]) ord ∧
+      IsMCSOrderingAny (ofEdges 5 ([(0,2),(0,4),(1,2),(1,3)] ++ [(2,3),(2,4),(3,4)])) ord := by
+  sorry
+
+/-- Stability obstruction: inserting a P4 path can destroy every common MCS ordering. -/
+theorem p4_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 6 [(0,3),(0,5),(1,2),(1,4),(2,3)]) ord ∧
+      IsMCSOrderingAny
+        (ofEdges 6 ([(0,3),(0,5),(1,2),(1,4),(2,3)] ++ [(2,5),(3,4),(4,5)])) ord := by
+  sorry
+
+/-- Stability obstruction: a mixed matching update (one insert, one delete) can destroy every common MCS ordering. -/
+theorem mixed_matching_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 4 [(0,1),(0,3),(1,2)]) ord ∧
+      IsMCSOrderingAny (ofEdges 4 [(0,3),(1,2),(2,3)]) ord := by
+  sorry
+
 end Challenge

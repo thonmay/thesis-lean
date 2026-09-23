@@ -269,5 +269,36 @@ theorem no_common_order_of_search (E₁ E₂ : List (ℕ × ℕ))
   rw [List.take_zero, hsearch] at h
   exact Bool.false_ne_true h
 
+/-! ## Concrete counterexamples (no common MCS ordering)
+
+Each theorem asserts that two specific graphs (given as edge lists) have no
+common MCS ordering, proved by applying `no_common_order_of_search` and
+discharging its search hypothesis by kernel `decide`. The witnesses are the
+smallest found by the exhaustive harness in `scripts/mcs_stability.py`. -/
+
+/-- Inserting the triangle on `{2,3,4}` into `G` leaves no common MCS ordering. -/
+theorem triangle_no_common_order :
+    ¬ ∃ ord, IsMCSOrderingAny (ofEdges 5 [(0,2),(0,4),(1,2),(1,3)]) ord ∧
+      IsMCSOrderingAny (ofEdges 5 ([(0,2),(0,4),(1,2),(1,3)] ++ [(2,3),(2,4),(3,4)])) ord := by
+  apply no_common_order_of_search (n := 5)
+  decide
+
+/-- Inserting the path `2-5-4-3` (= P4 on `{2,3,4,5}`) into `G` leaves no common
+MCS ordering. -/
+theorem p4_no_common_order :
+    ¬ ∃ ord, IsMCSOrderingAny (ofEdges 6 [(0,3),(0,5),(1,2),(1,4),(2,3)]) ord ∧
+      IsMCSOrderingAny
+        (ofEdges 6 ([(0,3),(0,5),(1,2),(1,4),(2,3)] ++ [(2,5),(3,4),(4,5)])) ord := by
+  apply no_common_order_of_search (n := 6)
+  decide
+
+/-- Flipping a matching whose edges are partly inserted and partly deleted
+(deleting `01`, inserting `23`) leaves no common MCS ordering. -/
+theorem mixed_matching_no_common_order :
+    ¬ ∃ ord, IsMCSOrderingAny (ofEdges 4 [(0,1),(0,3),(1,2)]) ord ∧
+      IsMCSOrderingAny (ofEdges 4 [(0,3),(1,2),(2,3)]) ord := by
+  apply no_common_order_of_search (n := 4)
+  decide
+
 end Proofs
 end Challenge
