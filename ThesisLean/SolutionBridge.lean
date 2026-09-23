@@ -64,12 +64,12 @@ lemma firstBreakAux_take (H : UGraph n) (order : List (Vert n)) :
           | some j =>
               have hkj := firstBreakAux_ge H order k j (x :: xs) h
               have hnot : ¬ j < k := by omega
-              simp [firstBreakAux, hnot]
+              simp [firstBreakAux, Option.filter, hnot]
       | succ m =>
           by_cases hx : IsMCSNext H (order.take k).toFinset x
           · simp only [List.take_succ_cons, firstBreakAux, hx, ↓reduceIte]
             rw [ih, show k + (m + 1) = k + 1 + m by omega]
-          · simp [List.take_succ_cons, firstBreakAux, hx]
+          · simp [List.take_succ_cons, firstBreakAux, Option.filter, hx]
 
 /-- The bounded window probe equals the full-suffix scan filtered to the
 window: stopping the scan at `k1` loses nothing. -/
@@ -82,7 +82,7 @@ theorem firstBreakWindow_eq_scan (H : UGraph n) (order : List (Vert n)) (k0 k1 :
   | none => rfl
   | some j =>
       have := firstBreakAux_ge H order k0 j _ h
-      simp only [Option.filter_some, decide_eq_true_eq]
+      simp only [Option.filter, decide_eq_true_eq]
       split_ifs <;> first | rfl | (exfalso; omega)
 
 end UGraph
@@ -247,7 +247,7 @@ lemma firstBreakWindow_eq (H : UGraph n) (order : List (Vert n)) (k0 k1 : ℕ) :
   cases DynamicMCS.Eea71821.firstBreak (toDyn H) order k0 with
   | none => rfl
   | some j =>
-      by_cases hj : j ≤ k1 <;> simp [hj] <;> omega
+      by_cases hj : j ≤ k1 <;> simp [Option.filter, hj] <;> omega
 
 /-- `initOrder` computes equal lists across the namespaces. -/
 lemma initOrder_eq (G : UGraph n) :

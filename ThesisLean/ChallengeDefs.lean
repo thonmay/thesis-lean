@@ -309,21 +309,39 @@ def execFirstBreak (a : Adj n) (order : List ℕ) : ℕ → List ℕ → Option 
   | _, [] => none
   | k, x :: xs => if pickAt a (order.take k) = x then execFirstBreak a order (k + 1) xs else some k
 
+/-- Position of the earlier endpoint in `order`. -/
+def execEarlierPos (order : List ℕ) (u v : ℕ) : ℕ :=
+  min (order.idxOf u) (order.idxOf v)
+
+/-- Position of the later endpoint in `order`. -/
+def execLaterPos (order : List ℕ) (u v : ℕ) : ℕ :=
+  max (order.idxOf u) (order.idxOf v)
+
+/-- The endpoint placed later in `order`. -/
+def execLaterVert (order : List ℕ) (u v : ℕ) : ℕ :=
+  if order.idxOf u ≤ order.idxOf v then v else u
+
+/-- The old choices at the positions `earlierPos + 1, …, laterPos`, which are
+the only positions an insertion probe examines. -/
+def insertWindow (order : List ℕ) (u v : ℕ) : List ℕ :=
+  (order.drop (execEarlierPos order u v + 1)).take (execLaterPos order u v - execEarlierPos order u v)
+
+/-- Insertion probe on the post-insertion matrix `a`. -/
+def insertProbe (a : Adj n) (order : List ℕ) (u v : ℕ) : Option ℕ :=
+  execFirstBreak a order (execEarlierPos order u v + 1) (insertWindow order u v)
+
 /-- Executable insertion update on the post-insertion matrix `a`: probe the
-window `[earlierPos + 1, laterPos]`, regreedy from the first break. -/
+window, regreedy from the first break, keep `order` if nothing breaks. -/
 def execInsertUpdate (a : Adj n) (order : List ℕ) (u v : ℕ) : List ℕ :=
-  let e := min (order.idxOf u) (order.idxOf v)
-  let l := max (order.idxOf u) (order.idxOf v)
-  match execFirstBreak a order (e + 1) ((order.drop (e + 1)).take (l - e)) with
+  match insertProbe a order u v with
   | none => order
   | some k => regreedy a (order.take k)
 
 /-- Executable deletion update on the post-deletion matrix `a`: probe the
 single position `laterPos`, regreedy from it if the probe fires. -/
 def execDeleteUpdate (a : Adj n) (order : List ℕ) (u v : ℕ) : List ℕ :=
-  let l := max (order.idxOf u) (order.idxOf v)
-  let w := if order.idxOf u ≤ order.idxOf v then v else u
-  if pickAt a (order.take l) = w then order else regreedy a (order.take l)
+  if pickAt a (order.take (execLaterPos order u v)) = execLaterVert order u v then order
+  else regreedy a (order.take (execLaterPos order u v))
 
 /-! ## Operational cost (unit-cost query model)
 
@@ -354,21 +372,21 @@ def execFirstBreakC (a : Adj n) (order : List ℕ) : ℕ → List ℕ → Option
         (r.1, r.2 + 1)
       else (some k, 1)
 
+/-- Instrumented `insertProbe`. -/
+def insertProbeC (a : Adj n) (order : List ℕ) (u v : ℕ) : Option ℕ × ℕ :=
+  execFirstBreakC a order (execEarlierPos order u v + 1) (insertWindow order u v)
+
 /-- Instrumented `execInsertUpdate`. -/
 def execInsertUpdateC (a : Adj n) (order : List ℕ) (u v : ℕ) : List ℕ × ℕ :=
-  let e := min (order.idxOf u) (order.idxOf v)
-  let l := max (order.idxOf u) (order.idxOf v)
-  let p := execFirstBreakC a order (e + 1) ((order.drop (e + 1)).take (l - e))
+  let p := insertProbeC a order u v
   match p.1 with
   | none => (order, p.2)
   | some k => let r := regreedyC a (order.take k); (r.1, p.2 + r.2)
 
 /-- Instrumented `execDeleteUpdate`. -/
 def execDeleteUpdateC (a : Adj n) (order : List ℕ) (u v : ℕ) : List ℕ × ℕ :=
-  let l := max (order.idxOf u) (order.idxOf v)
-  let w := if order.idxOf u ≤ order.idxOf v then v else u
-  if pickAt a (order.take l) = w then (order, 1)
-  else let r := regreedyC a (order.take l); (r.1, 1 + r.2)
+  if pickAt a (order.take (execLaterPos order u v)) = execLaterVert order u v then (order, 1)
+  else let r := regreedyC a (order.take (execLaterPos order u v)); (r.1, 1 + r.2)
 
 end Challenge
 -- END DEFS
