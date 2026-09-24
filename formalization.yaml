@@ -7,20 +7,24 @@ project:
   description: >-
     A fully-dynamic Maximum-Cardinality-Search (MCS) ordering algorithm that,
     on a single-edge insertion or deletion into a loop-free undirected graph,
-    scans the suffix from the earlier endpoint for the first step at which the
-    current ordering's choice stops being a legal MCS pick (the scan result is
-    filtered to the affected window between the two endpoints), and only then
-    regreedies the suffix (probe-then-repair). Correctness - every order
-    produced stays a valid MCS ordering of the updated graph - and per-update
-    combinatorial cost O(n + m) measured by an explicit cost measure (probe
-    scan length plus suffix regreedy work) are both machine-checked in Lean 4
-    / Mathlib. The cost measures are combinatorial surrogates for the
-    noncomputable greedy recomputation, not formalized operational running
-    time; the deletion cost measure over-counts relative to the actual
-    single-point deletion probe (the O(n + m) bound remains valid since a
-    single check is bounded by a full suffix scan).
+    scans the affected window between the two endpoints for the first step at
+    which the current ordering's choice stops being a legal MCS pick, and only
+    then regreedies the suffix (probe-then-repair). Correctness - every order
+    produced stays a valid MCS ordering of the updated graph, and in fact
+    equals the from-scratch canonical ordering - is machine-checked in Lean 4 /
+    Mathlib, together with locality (only positions inside the window can
+    change), an executable boolean-adjacency implementation proved to refine the
+    abstract update, and per-update cost in a unit-cost query model (counting
+    legality checks and pick steps along the real executable control flow): at
+    most n units for an insertion and n + 1 for a deletion, so the worst case
+    matches static recomputation. A stability-boundary result is also proved:
+    if the neighbour count of every vertex in one graph exceeds that in the
+    other by at most one along every chosen prefix, the two graphs admit a
+    common MCS ordering; in particular inserting or deleting a matching, or
+    flipping a single edge, always preserves a common MCS ordering.
   authors:
     - "Md Thoriqul Islam Thonmay"
+    - "Gregory Morse"
   license: "Apache-2.0"
   responsible_maintainers:
     - "Md Thoriqul Islam Thonmay"
@@ -40,19 +44,32 @@ sources:
       maintenance under single-edge insertions and deletions. We are not aware
       of a prior formalization of dynamic MCS ordering maintenance in any
       proof assistant; the algorithm itself builds on the classical MCS
-      heuristic of Tarjan and Yannakakis. The correctness theorems and the
-      O(n + m) per-update cost measure are proved here in Lean 4 / Mathlib.
+      heuristic of Tarjan and Yannakakis. The correctness, locality, executable
+      refinement, unit-cost (worst case n for an insertion, n + 1 for a
+      deletion, matching static recomputation) and stability-boundary theorems
+      are proved here in Lean 4 / Mathlib.
     authors:
       - "Md Thoriqul Islam Thonmay"
-  - title: "Maximum cardinality search: a general-purpose heuristic"
+  - title: >-
+      Simple linear-time algorithms to test chordality of graphs, test
+      comparability of graphs, and selectively schedule arc weights
     relationship: background
     note: >-
-      Background reference for the Maximum-Cardinality-Search ordering and the
-      bucket / Rose-Tarjan recomputation used for the regreedy step. The core
-      MCS definition (pick as next the unchosen vertex with maximum number of
-      already-chosen neighbors, ties broken by lowest index) is standard.
+      Background reference for the Maximum-Cardinality-Search ordering. The
+      original MCS paper (Rose, Tarjan and Lueker, J. ACM 23(1):244-253, 1976)
+      introduced the heuristic and its linear-time bucket implementation;
+      Tarjan and Yannakakis (Maximum cardinality search: a general-purpose
+      heuristic, SIAM J. Comput. 13(3):566-579, 1984) surveyed it as a
+      general-purpose heuristic. The core MCS definition used here (pick as next
+      the unchosen vertex with maximum number of already-chosen neighbors, ties
+      broken by lowest index) is standard. The regreedy in this formalization is
+      a naive greedy recomputation, not a bucket or Rose-Tarjan implementation;
+      the unit-cost count is taken over the executable control flow, not a
+      bucket data-structure cost.
     authors:
-      - "Robert Tarjan"
+      - "Donald J. Rose"
+      - "Robert Endre Tarjan"
+      - "George S. Lueker"
       - "Mihalis Yannakakis"
 
 related_formalizations: []
@@ -61,17 +78,33 @@ status:
   scope: >-
     Formalized for any finite n: the abstract UGraph (loop-free, symmetric
     finite graph on Fin n), the MCS legality predicate IsMCSNext (max-cardinal
-    unchosen vertex, lowest-index tie-break), valid-MCS-ordering, the
-    probe-then-repair init/insert/delete updates, and the correctness theorems
-    init_valid / insert_update_valid / delete_update_valid together with
-    greedySuffix_full and update_from_prefix. Per-update cost is formalized
-    with the explicit measures insertCost / deleteCost and bounded by c*(n+m)
-    in insert_complexity / delete_complexity. The executable boolean-adjacency
-    recomputation is connected to the abstract graph by
-    setEdge_preserves_symm / setEdge_preserves_loopless,
-    mcsOrder_eq_greedySuffix, exec_insert_valid and exec_delete_valid. All
-    headline theorems in Solution.lean are proved with no sorry; Challenge.lean
-    restates them with deliberate sorry bodies for the comparator.
+    unchosen vertex, lowest-index tie-break) and its tie-break-free variant
+    IsMCSOrderingAny, valid-MCS-ordering, the probe-then-repair
+    init/insert/delete updates, and the correctness theorems init_valid /
+    insert_update_valid / delete_update_valid together with greedySuffix_full
+    and update_from_prefix. The canonical ordering is unique
+    (IsMCSOrdering_unique) and each update returns exactly the from-scratch
+    ordering (insert/delete_update_eq_initOrder). Locality is proved:
+    legal_upto_earlierPos, legal_after_laterPos, delete_legal_between,
+    insert_break_iff, and the null-update equivalences
+    insert/delete_update_eq_self_iff. An executable boolean-adjacency
+    implementation (execInsertUpdate / execDeleteUpdate) is proved to refine the
+    abstract update (exec_insert_update_eq, exec_delete_update_eq) and is
+    instrumented (execInsertUpdateC / execDeleteUpdateC) to count operations
+    along the real control flow; the unit-cost bounds exec_insert_cost_le (<= n)
+    and exec_delete_cost_le (<= n + 1) give the worst case matching static
+    recomputation. The executable recomputation is connected to the abstract
+    graph by setEdge_preserves_symm / setEdge_preserves_loopless and
+    mcsOrder_eq_greedySuffix, with exec_insert_valid / exec_delete_valid. A
+    stability-boundary result is proved: exists_common_ordering (neighbour
+    counts differ by at most one along every prefix implies a common MCS
+    ordering), with corollaries insert_matching_common_order,
+    delete_matching_common_order and flip_common_order; and the matching
+    obstructions are certified by kernel decide (triangle_no_common_order,
+    p4_no_common_order, mixed_matching_no_common_order), showing the matching
+    hypothesis cannot be dropped. All headline theorems in
+    Solution.lean are proved with no sorry; Challenge.lean restates them with
+    deliberate sorry bodies for the comparator.
   sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Quot.sound", "Classical.choice"]
@@ -93,45 +126,70 @@ automation:
         Statement-first staged development (definitions -> lemma statements ->
         proofs one at a time), interactive goal exploration with lean4-repl,
         and per-file lake build checks.
+    - method: "agent"
+      models: ["zai-org/GLM-5.2"]
+      framework: "enlcode agent harness over Lean 4 / lean4-repl / lake build"
+      tool_setup: >-
+        Second-pass repair and comparator wiring: fixed the executable-update
+        refinement and unit-cost proofs, added the stability module, and wired
+        the locality / refinement / cost / stability theorems into the
+        comparator through generated thin wrappers (signatures copied verbatim
+        from #check to keep Challenge.lean and Solution.lean textually
+        identical). Verified on a remote 96-core host with lake build and the
+        leanchecker external kernel.
+      cost:
+        wall_time: "several developer-hours across repair and wiring rounds"
+        spend_usd: "not tracked"
+        hardware: "remote dedicated 96-core build host (API access)"
+      prompting_notes: >-
+        Goal-level repair driven from lake build error output and #check type
+        ground-truth; single-source generation of the comparator wrapper blocks
+        to avoid transcription drift between the posed and proved statements.
   spend_usd: "not tracked"
   notes: >-
     The proof development was carried out interactively with AI assistance
-    (this agent harness) and manually checked with lake build and leanchecker on
-    every stage. The palette of transport / bridge lemmas was written by hand
-    and each intermediate lemma verified independently.
+    (the agent harnesses above) and manually checked with lake build and
+    leanchecker on every stage. The palette of transport / bridge lemmas was
+    written by hand and each intermediate lemma verified independently.
 
 fidelity:
   divergences: >-
     The MCS tie-breaking rule is fixed to lowest vertex index; the standard
     literature statement allows an arbitrary (but fixed) tie-break, so this is
-    equivalent and explicit here. The cost measure is an explicit combinatorial
-    surrogate (probe scan length plus suffix regreedy work), not a formalized
-    operational running time; boundedness by c*(n+m) is what is proved. The
-    formal insertion probe scans the full suffix from the earlier endpoint and
-    filters the result to the affected window, rather than stopping at the
-    window boundary; the headline O(n+m) bound is unaffected since the full
-    suffix scan is O(n). The deletion cost measure charges a full-suffix probe
-    scan, but the actual deletion algorithm performs only a single-point
-    legality check at the later endpoint; the bound remains valid because a
-    single check is bounded by a suffix scan. The regreedy step
-    (greedySuffix) is noncomputable (Classical.choice), so the cost measure
-    stipulates the regreedy work by combinatorial fiat rather than deriving it
-    from an operational cost semantics.  The formal regreedy is a naive greedy
-    (greedySuffix via Classical.choice), not a bucket or Rose-Tarjan
-    implementation; the cost measure stipulates a bucket-style work profile
-    (one vertex-touch per suffix element, two edge-touches per incident edge)
-    by combinatorial fiat.
+    equivalent and explicit here. The stability results are stated on the
+    tie-break-free predicate IsMCSOrderingAny (any legal pick at each step),
+    which is the natural setting for the common-ordering question; the
+    uniqueness results use the canonical IsMCSOrdering. The cost model is a
+    unit-cost query model: each legality check and each pick step counts as one
+    unit, measured by instrumented functions (execInsertUpdateC /
+    execDeleteUpdateC) whose first projection equals the plain update; this is
+    an operational count along the real executable control flow, not a
+    bit-level or word-RAM running time. The deletion probe performs exactly one
+    legality check (exec_delete_cost_of_no_break proves the cost is 1 when no
+    regreedy is needed). The regreedy step (greedySuffix) is noncomputable
+    (Classical.choice) in the abstract model; the executable layer
+    (execRegreedyFrom via bestPick) is computable and its refinement to the
+    abstract regreedy is proved (regreedy_eq_greedySuffix), so the cost count
+    tracks the computable implementation.
 
 review:
   status: "author-verified"
   reviewers:
     - "Md Thoriqul Islam Thonmay"
+    - "Gregory Morse"
   notes: >-
-    Every headline theorem statement in Solution.lean was audited to be
-    verbatim-identical to its Challenge.lean counterpart (same namespace
-    Challenge, same types), and each proof builds under lake build with the
-    leanchecker kernel checker passing and no sorry / axiom / admit / unsafe in
-    the Solution module.
+    Every headline theorem statement in Solution.lean is textually identical to
+    its Challenge.lean counterpart (same namespace Challenge, same types),
+    enforced by generating both from a single source of truth
+    (scripts/gen_comparator_wrappers.py). Each proof builds under lake build
+    with the leanchecker external kernel checker passing and no sorry / axiom /
+    admit / unsafe / native_decide in the Solution module; the AxiomAudit
+    confirms all 31 comparator theorems depend only on propext, Quot.sound and
+    Classical.choice. The supervisor (Gregory Morse) is the independent
+    reviewer: he reviewed the theorem statements against the intended
+    mathematical claims and the stability-boundary statements, and confirmed the
+    worst-case cost equals static recomputation (no asymptotic separation is
+    claimed).
 
 alignment:
   namespace: "Challenge"
@@ -140,10 +198,7 @@ alignment:
       lean: "Challenge.init_valid"
       module: "Solution"
       status: "proved"
-      note: >-
-        A converged probe-then-repair init (full deterministic greedy from the
-        empty prefix) yields an ordering satisfying IsMCSOrdering on the input
-        graph.
+      note: "A converged probe-then-repair init (full deterministic greedy from the empty prefix) yields an ordering satisfying IsMCSOrdering on the input graph."
     - source: "Correctness of the insertion update"
       lean: "Challenge.insert_update_valid"
       module: "Solution"
@@ -160,14 +215,6 @@ alignment:
       status: "proved"
     - source: "Regreedy from a legal prefix yields a valid MCS ordering"
       lean: "Challenge.update_from_prefix"
-      module: "Solution"
-      status: "proved"
-    - source: "Insertion update cost is O(n + m)"
-      lean: "Challenge.insert_complexity"
-      module: "Solution"
-      status: "proved"
-    - source: "Deletion update cost is O(n + m)"
-      lean: "Challenge.delete_complexity"
       module: "Solution"
       status: "proved"
     - source: "setEdge preserves matrix symmetry"
@@ -190,6 +237,126 @@ alignment:
       lean: "Challenge.exec_delete_valid"
       module: "Solution"
       status: "proved"
+    - source: "The canonical MCS ordering of a graph is unique (the lowest-index tie-break fixes every step)."
+      lean: "Challenge.IsMCSOrdering_unique"
+      module: "Solution"
+      status: "proved"
+      note: "The canonical MCS ordering of a graph is unique (the lowest-index tie-break fixes every step)."
+    - source: "The insertion update returns exactly the from-scratch canonical ordering of the new graph."
+      lean: "Challenge.insert_update_eq_initOrder"
+      module: "Solution"
+      status: "proved"
+      note: "The insertion update returns exactly the from-scratch canonical ordering of the new graph."
+    - source: "The deletion update returns exactly the from-scratch canonical ordering of the new graph."
+      lean: "Challenge.delete_update_eq_initOrder"
+      module: "Solution"
+      status: "proved"
+      note: "The deletion update returns exactly the from-scratch canonical ordering of the new graph."
+    - source: "Locality: positions up to the earlier endpoint stay legal after any flip."
+      lean: "Challenge.legal_upto_earlierPos"
+      module: "Solution"
+      status: "proved"
+      note: "Locality: positions up to the earlier endpoint stay legal after any flip."
+    - source: "Locality: positions after the later endpoint stay legal after any flip."
+      lean: "Challenge.legal_after_laterPos"
+      module: "Solution"
+      status: "proved"
+      note: "Locality: positions after the later endpoint stay legal after any flip."
+    - source: "Locality: after a deletion, positions strictly between the endpoints stay legal."
+      lean: "Challenge.delete_legal_between"
+      module: "Solution"
+      status: "proved"
+      note: "Locality: after a deletion, positions strictly between the endpoints stay legal."
+    - source: "Inside the insertion window, the old choice breaks exactly when the later endpoint now beats it."
+      lean: "Challenge.insert_break_iff"
+      module: "Solution"
+      status: "proved"
+      note: "Inside the insertion window, the old choice breaks exactly when the later endpoint now beats it."
+    - source: "The insertion update is the identity exactly when the order is still canonical for the new graph."
+      lean: "Challenge.insert_update_eq_self_iff"
+      module: "Solution"
+      status: "proved"
+      note: "The insertion update is the identity exactly when the order is still canonical for the new graph."
+    - source: "The deletion update is the identity exactly when the order is still canonical for the new graph."
+      lean: "Challenge.delete_update_eq_self_iff"
+      module: "Solution"
+      status: "proved"
+      note: "The deletion update is the identity exactly when the order is still canonical for the new graph."
+    - source: "Refinement: the executable insertion update equals the abstract insertion update mapped to vertex values."
+      lean: "Challenge.exec_insert_update_eq"
+      module: "Solution"
+      status: "proved"
+      note: "Refinement: the executable insertion update equals the abstract insertion update mapped to vertex values."
+    - source: "Refinement: the executable deletion update equals the abstract deletion update mapped to vertex values."
+      lean: "Challenge.exec_delete_update_eq"
+      module: "Solution"
+      status: "proved"
+      note: "Refinement: the executable deletion update equals the abstract deletion update mapped to vertex values."
+    - source: "Cost: an insertion costs at most n units in the unit-cost query model."
+      lean: "Challenge.exec_insert_cost_le"
+      module: "Solution"
+      status: "proved"
+      note: "Cost: an insertion costs at most n units in the unit-cost query model."
+    - source: "Cost: a deletion costs at most n + 1 units in the unit-cost query model."
+      lean: "Challenge.exec_delete_cost_le"
+      module: "Solution"
+      status: "proved"
+      note: "Cost: a deletion costs at most n + 1 units in the unit-cost query model."
+    - source: "Cost: an insertion whose probe finds no break costs at most the window size."
+      lean: "Challenge.exec_insert_cost_of_no_break"
+      module: "Solution"
+      status: "proved"
+      note: "Cost: an insertion whose probe finds no break costs at most the window size."
+    - source: "Cost: a deletion whose probe does not fire costs exactly one check."
+      lean: "Challenge.exec_delete_cost_of_no_break"
+      module: "Solution"
+      status: "proved"
+      note: "Cost: a deletion whose probe does not fire costs exactly one check."
+    - source: "Cost: an insertion that breaks at k costs the probe checks plus at most n - k regreedy steps."
+      lean: "Challenge.exec_insert_cost_of_break"
+      module: "Solution"
+      status: "proved"
+      note: "Cost: an insertion that breaks at k costs the probe checks plus at most n - k regreedy steps."
+    - source: "Cost: a deletion that fires costs one check plus at most n - laterPos regreedy steps."
+      lean: "Challenge.exec_delete_cost_of_break"
+      module: "Solution"
+      status: "proved"
+      note: "Cost: a deletion that fires costs one check plus at most n - laterPos regreedy steps."
+    - source: "Stability: if G' neighbour counts exceed G's by at most one along every chosen set, the two graphs share an MCS ordering."
+      lean: "Challenge.exists_common_ordering"
+      module: "Solution"
+      status: "proved"
+      note: "Stability: if G' neighbour counts exceed G's by at most one along every chosen set, the two graphs share an MCS ordering."
+    - source: "Stability: inserting a matching leaves a common MCS ordering."
+      lean: "Challenge.insert_matching_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability: inserting a matching leaves a common MCS ordering."
+    - source: "Stability: deleting a matching leaves a common MCS ordering."
+      lean: "Challenge.delete_matching_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability: deleting a matching leaves a common MCS ordering."
+    - source: "Stability: flipping a single edge leaves a common MCS ordering."
+      lean: "Challenge.flip_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability: flipping a single edge leaves a common MCS ordering."
+    - source: "Stability obstruction: inserting a triangle can destroy every common MCS ordering."
+      lean: "Challenge.triangle_no_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability obstruction: inserting a triangle can destroy every common MCS ordering."
+    - source: "Stability obstruction: inserting a P4 path can destroy every common MCS ordering."
+      lean: "Challenge.p4_no_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability obstruction: inserting a P4 path can destroy every common MCS ordering."
+    - source: "Stability obstruction: a mixed matching update (one insert, one delete) can destroy every common MCS ordering."
+      lean: "Challenge.mixed_matching_no_common_order"
+      module: "Solution"
+      status: "proved"
+      note: "Stability obstruction: a mixed matching update (one insert, one delete) can destroy every common MCS ordering."
 
 acknowledgements: >-
   Built on mathlib v4.35.0-rc2 and Lean 4.35.0-rc2. The verification pipeline

@@ -1,23 +1,22 @@
 import Mathlib
 import ThesisLean.Formal_gen001c01_3939115c
 import ThesisLean.Formal_gen003c01_eea71821
-import ThesisLean.ComplexityHeadlines
-import ThesisLean.ProbeCost
 import ThesisLean.Exec
 import ThesisLean.ExecFlip
 import ThesisLean.BridgeAssembly
-import ThesisLean.CountBridge
 import ThesisLean.SolutionBridge
+import ThesisLean.Correctness
+import ThesisLean.ExecUpdate
+import ThesisLean.Stability
 
 /-!
 # Solution: proved headline theorems for Dynamic MCS ordering maintenance
 
 This module supplies real proofs (no `sorry`) of the headline theorems that
 `Challenge.lean` states with `sorry`-bodies under the same namespace
-`Challenge`.  It imports only Mathlib and the project development (and
-`ThesisLean.SolutionBridge`, which redeclares the `Challenge` namespace
-definitions verbatim and provides transport lemmas).  It does **not** import
-`Challenge.lean`.
+`Challenge`.  It imports `ThesisLean.ChallengeDefs` (the definitions block of
+`Challenge.lean`, byte-identical) and the project development, but not
+`Challenge.lean` itself.
 
 Each headline theorem is transported to its proved project counterpart
 through the `Challenge.Transport` lemmas in `SolutionBridge`: the graph
@@ -126,36 +125,6 @@ theorem update_from_prefix (order : List (Vert n)) (k : ℕ)
     rw [Transport.IsMCSOrdering_toDyn]
     exact hproj
   exact hres
-
-/-! ## Complexity headline theorems -/
-
-/-- The insertion cost measure `insertCost` is bounded by `O(n + m)`.  The
-cost measure is a combinatorial surrogate, not an operational running time. -/
-theorem insert_complexity :
-    ∃ c : ℕ,
-      ∀ (n : ℕ) (G : UGraph n) (order : List (Vert n)) (u v : Vert n),
-        order.length ≤ n →
-          insertCost G order u v ≤ c * (n + edgeCount G) := by
-  rcases ComplexityHeadlines.insert_complexity with ⟨c, hc⟩
-  refine ⟨c, ?_⟩
-  intro n G order u v hlen
-  have hc' := hc n (Transport.toDyn G) order u v hlen
-  rw [Transport.insertCost_eq, Transport.edgeCount_eq]
-  exact hc'
-
-/-- The deletion cost measure `deleteCost` is bounded by `O(n + m)`.  The
-cost measure is a combinatorial surrogate, not an operational running time. -/
-theorem delete_complexity :
-    ∃ c : ℕ,
-      ∀ (n : ℕ) (G : UGraph n) (order : List (Vert n)) (u v : Vert n),
-        order.length ≤ n →
-          deleteCost G order u v ≤ c * (n + edgeCount G) := by
-  rcases ComplexityHeadlines.delete_complexity with ⟨c, hc⟩
-  refine ⟨c, ?_⟩
-  intro n G order u v hlen
-  have hc' := hc n (Transport.toDyn G) order u v hlen
-  rw [Transport.deleteCost_eq, Transport.edgeCount_eq]
-  exact hc'
 
 /-! ## Executable setEdge preservation & bridge headline theorems -/
 
@@ -327,5 +296,168 @@ theorem exec_delete_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     exact (Transport.IsMCSOrdering_toDyn G' ord).2 hv
   · simpa [a', deleteEdge_eq, Exec.deleteEdge, Exec.setEdge, Transport.mcsOrder_eq]
       using hmap
+
+
+/-! ## Comparator headline theorems (generated) -/
+
+/-- The canonical MCS ordering of a graph is unique (the lowest-index tie-break fixes every step). -/
+theorem IsMCSOrdering_unique : ∀ {n : ℕ} {G : UGraph n} {o₁ o₂ : List (Vert n)},
+    G.IsMCSOrdering o₁ → G.IsMCSOrdering o₂ → o₁ = o₂ :=
+  Proofs.IsMCSOrdering_unique
+
+/-- The insertion update returns exactly the from-scratch canonical ordering of the new graph. -/
+theorem insert_update_eq_initOrder : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → G.IsMCSOrdering order → G'.insertUpdate order u v = G'.initOrder :=
+  Proofs.insert_update_eq_initOrder
+
+/-- The deletion update returns exactly the from-scratch canonical ordering of the new graph. -/
+theorem delete_update_eq_initOrder : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → G.adj u v → ¬ G'.adj u v → G.IsMCSOrdering order →
+        G'.deleteUpdate order u v = G'.initOrder :=
+  Proofs.delete_update_eq_initOrder
+
+/-- Locality: positions up to the earlier endpoint stay legal after any flip. -/
+theorem legal_upto_earlierPos : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → G.IsMCSOrdering order → ∀ (i : ℕ) (hi : i < order.length),
+        i ≤ UGraph.earlierPos order u v →
+          G'.IsMCSNext (List.take i order).toFinset (order.get ⟨i, hi⟩) :=
+  Proofs.legal_upto_earlierPos
+
+/-- Locality: positions after the later endpoint stay legal after any flip. -/
+theorem legal_after_laterPos : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → G.IsMCSOrdering order → ∀ (i : ℕ) (hi : i < order.length),
+        UGraph.laterPos order u v < i →
+          G'.IsMCSNext (List.take i order).toFinset (order.get ⟨i, hi⟩) :=
+  Proofs.legal_after_laterPos
+
+/-- Locality: after a deletion, positions strictly between the endpoints stay legal. -/
+theorem delete_legal_between : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → G.adj u v → ¬ G'.adj u v → G.IsMCSOrdering order →
+        ∀ (i : ℕ) (hi : i < order.length),
+          UGraph.earlierPos order u v < i → i < UGraph.laterPos order u v →
+            G'.IsMCSNext (List.take i order).toFinset (order.get ⟨i, hi⟩) :=
+  Proofs.delete_legal_between
+
+/-- Inside the insertion window, the old choice breaks exactly when the later endpoint now beats it. -/
+theorem insert_break_iff : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → ¬ G.adj u v → G'.adj u v → G.IsMCSOrdering order →
+        ∀ (k : ℕ) (hk : k < order.length),
+          UGraph.earlierPos order u v < k → k ≤ UGraph.laterPos order u v →
+            (¬ G'.IsMCSNext (List.take k order).toFinset (order.get ⟨k, hk⟩) ↔
+              G'.neigh (List.take k order).toFinset (UGraph.laterVert order u v) >
+                  G'.neigh (List.take k order).toFinset (order.get ⟨k, hk⟩) ∨
+                G'.neigh (List.take k order).toFinset (UGraph.laterVert order u v) =
+                    G'.neigh (List.take k order).toFinset (order.get ⟨k, hk⟩) ∧
+                  UGraph.laterVert order u v < order.get ⟨k, hk⟩) :=
+  Proofs.insert_break_iff
+
+/-- The insertion update is the identity exactly when the order is still canonical for the new graph. -/
+theorem insert_update_eq_self_iff : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → G.IsMCSOrdering order →
+        (G'.insertUpdate order u v = order ↔ G'.IsMCSOrdering order) :=
+  Proofs.insert_update_eq_self_iff
+
+/-- The deletion update is the identity exactly when the order is still canonical for the new graph. -/
+theorem delete_update_eq_self_iff : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → G.adj u v → ¬ G'.adj u v → G.IsMCSOrdering order →
+        (G'.deleteUpdate order u v = order ↔ G'.IsMCSOrdering order) :=
+  Proofs.delete_update_eq_self_iff
+
+/-- Refinement: the executable insertion update equals the abstract insertion update mapped to vertex values. -/
+theorem exec_insert_update_eq : ∀ {n : ℕ} (a a' : Adj n) (hsymm : ∀ (u v : ℕ), getAdj a u v = getAdj a v u)
+      (hloop : ∀ (u : ℕ), getAdj a u u = false)
+      (hsymm' : ∀ (u v : ℕ), getAdj a' u v = getAdj a' v u)
+      (hloop' : ∀ (u : ℕ), getAdj a' u u = false),
+      List.length a' = n → ∀ (u v : Fin n) (ord : List (Fin n)),
+        (toUGraph a hsymm hloop).FlipOf (toUGraph a' hsymm' hloop') u v →
+          (toUGraph a hsymm hloop).IsMCSOrdering ord →
+            execInsertUpdate a' (List.map Fin.val ord) ↑u ↑v =
+              List.map Fin.val ((toUGraph a' hsymm' hloop').insertUpdate ord u v) :=
+  Proofs.exec_insert_update_eq
+
+/-- Refinement: the executable deletion update equals the abstract deletion update mapped to vertex values. -/
+theorem exec_delete_update_eq : ∀ {n : ℕ} (a a' : Adj n) (hsymm : ∀ (u v : ℕ), getAdj a u v = getAdj a v u)
+      (hloop : ∀ (u : ℕ), getAdj a u u = false)
+      (hsymm' : ∀ (u v : ℕ), getAdj a' u v = getAdj a' v u)
+      (hloop' : ∀ (u : ℕ), getAdj a' u u = false),
+      List.length a' = n → ∀ (u v : Fin n) (ord : List (Fin n)),
+        (toUGraph a hsymm hloop).FlipOf (toUGraph a' hsymm' hloop') u v →
+          getAdj a ↑u ↑v = true → getAdj a' ↑u ↑v = false →
+            (toUGraph a hsymm hloop).IsMCSOrdering ord →
+              execDeleteUpdate a' (List.map Fin.val ord) ↑u ↑v =
+                List.map Fin.val ((toUGraph a' hsymm' hloop').deleteUpdate ord u v) :=
+  Proofs.exec_delete_update_eq
+
+/-- Cost: an insertion costs at most n units in the unit-cost query model. -/
+theorem exec_insert_cost_le : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      o.length = List.length a → (execInsertUpdateC a o u v).2 ≤ List.length a :=
+  Proofs.exec_insert_cost_le
+
+/-- Cost: a deletion costs at most n + 1 units in the unit-cost query model. -/
+theorem exec_delete_cost_le : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      (execDeleteUpdateC a o u v).2 ≤ List.length a + 1 :=
+  Proofs.exec_delete_cost_le
+
+/-- Cost: an insertion whose probe finds no break costs at most the window size. -/
+theorem exec_insert_cost_of_no_break : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      insertProbe a o u v = none →
+        (execInsertUpdateC a o u v).2 ≤ execLaterPos o u v - execEarlierPos o u v :=
+  Proofs.exec_insert_cost_of_no_break
+
+/-- Cost: a deletion whose probe does not fire costs exactly one check. -/
+theorem exec_delete_cost_of_no_break : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      pickAt a (List.take (execLaterPos o u v) o) = execLaterVert o u v →
+        (execDeleteUpdateC a o u v).2 = 1 :=
+  Proofs.exec_delete_cost_of_no_break
+
+/-- Cost: an insertion that breaks at k costs the probe checks plus at most n - k regreedy steps. -/
+theorem exec_insert_cost_of_break : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v k : ℕ),
+      insertProbe a o u v = some k →
+        (execInsertUpdateC a o u v).2 ≤ k - execEarlierPos o u v + (List.length a - k) :=
+  Proofs.exec_insert_cost_of_break
+
+/-- Cost: a deletion that fires costs one check plus at most n - laterPos regreedy steps. -/
+theorem exec_delete_cost_of_break : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      pickAt a (List.take (execLaterPos o u v) o) ≠ execLaterVert o u v →
+        (execDeleteUpdateC a o u v).2 ≤ 1 + (List.length a - execLaterPos o u v) :=
+  Proofs.exec_delete_cost_of_break
+
+/-- Stability: if G' neighbour counts exceed G's by at most one along every chosen set, the two graphs share an MCS ordering. -/
+theorem exists_common_ordering : ∀ {n : ℕ} (G G' : UGraph n),
+      (∀ (S : Finset (Vert n)) (x : Vert n), G.neigh S x ≤ G'.neigh S x) →
+        (∀ (S : Finset (Vert n)) (x : Vert n), G'.neigh S x ≤ G.neigh S x + 1) →
+          ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord :=
+  Proofs.exists_common_ordering
+
+/-- Stability: inserting a matching leaves a common MCS ordering. -/
+theorem insert_matching_common_order : ∀ {n : ℕ} {G F G' : UGraph n},
+      G.AddsEdges F G' → F.IsMatching → ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord :=
+  Proofs.insert_matching_common_order
+
+/-- Stability: deleting a matching leaves a common MCS ordering. -/
+theorem delete_matching_common_order : ∀ {n : ℕ} {G F G' : UGraph n},
+      G'.AddsEdges F G → F.IsMatching → ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord :=
+  Proofs.delete_matching_common_order
+
+/-- Stability: flipping a single edge leaves a common MCS ordering. -/
+theorem flip_common_order : ∀ {n : ℕ} {G G' : UGraph n} {u v : Vert n},
+      G.FlipOf G' u v → ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord :=
+  Proofs.flip_common_order
+
+/-- Stability obstruction: inserting a triangle can destroy every common MCS ordering. -/
+theorem triangle_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 5 [(0,2),(0,4),(1,2),(1,3)]) ord ∧
+      IsMCSOrderingAny (ofEdges 5 ([(0,2),(0,4),(1,2),(1,3)] ++ [(2,3),(2,4),(3,4)])) ord :=
+  Proofs.triangle_no_common_order
+
+/-- Stability obstruction: inserting a P4 path can destroy every common MCS ordering. -/
+theorem p4_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 6 [(0,3),(0,5),(1,2),(1,4),(2,3)]) ord ∧
+      IsMCSOrderingAny
+        (ofEdges 6 ([(0,3),(0,5),(1,2),(1,4),(2,3)] ++ [(2,5),(3,4),(4,5)])) ord :=
+  Proofs.p4_no_common_order
+
+/-- Stability obstruction: a mixed matching update (one insert, one delete) can destroy every common MCS ordering. -/
+theorem mixed_matching_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 4 [(0,1),(0,3),(1,2)]) ord ∧
+      IsMCSOrderingAny (ofEdges 4 [(0,3),(1,2),(2,3)]) ord :=
+  Proofs.mixed_matching_no_common_order
 
 end Challenge
