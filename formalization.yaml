@@ -51,17 +51,15 @@ sources:
     authors:
       - "Md Thoriqul Islam Thonmay"
   - title: >-
-      Simple linear-time algorithms to test chordality of graphs, test
-      comparability of graphs, and selectively schedule arc weights
+      Algorithmic Aspects of Vertex Elimination on Graphs
     relationship: background
     note: >-
-      Background reference for the Maximum-Cardinality-Search ordering. The
-      original MCS paper (Rose, Tarjan and Lueker, J. ACM 23(1):244-253, 1976)
-      introduced the heuristic and its linear-time bucket implementation;
-      Tarjan and Yannakakis (Maximum cardinality search: a general-purpose
-      heuristic, SIAM J. Comput. 13(3):566-579, 1984) surveyed it as a
-      general-purpose heuristic. The core MCS definition used here (pick as next
-      the unchosen vertex with maximum number of already-chosen neighbors, ties
+      Rose, Tarjan and Lueker (SIAM J. Comput. 5(2):266-283, 1976,
+      doi:10.1137/0205021) introduced lexicographic breadth-first search
+      (LexBFS) and linear-time chordal graph recognition. MCS was later
+      introduced by Tarjan and Yannakakis as a simplified alternative; see the
+      next source entry. The core MCS definition used here (pick as next the
+      unchosen vertex with maximum number of already-chosen neighbors, ties
       broken by lowest index) is standard. The regreedy in this formalization is
       a naive greedy recomputation, not a bucket or Rose-Tarjan implementation;
       the unit-cost count is taken over the executable control flow, not a
@@ -70,6 +68,17 @@ sources:
       - "Donald J. Rose"
       - "Robert Endre Tarjan"
       - "George S. Lueker"
+  - title: >-
+      Simple Linear-Time Algorithms to Test Chordality of Graphs, Test
+      Acyclicity of Hypergraphs, and Selectively Reduce Acyclic Hypergraphs
+    relationship: background
+    note: >-
+      Tarjan and Yannakakis (SIAM J. Comput. 13(3):566-579, 1984,
+      doi:10.1137/0213035) introduced Maximum Cardinality Search (MCS) as a
+      simplified alternative to LexBFS for recognizing chordal graphs. This
+      formalization uses the MCS ordering defined in that paper.
+    authors:
+      - "Robert Endre Tarjan"
       - "Mihalis Yannakakis"
 
 related_formalizations: []
@@ -95,7 +104,7 @@ status:
     and exec_delete_cost_le (<= n + 1) give the worst case matching static
     recomputation. The executable recomputation is connected to the abstract
     graph by setEdge_preserves_symm / setEdge_preserves_loopless and
-    mcsOrder_eq_greedySuffix, with exec_insert_valid / exec_delete_valid. A
+    mcsOrder_eq_greedySuffix, with exec_insert_recompute_valid / exec_delete_recompute_valid. A
     stability-boundary result is proved: exists_common_ordering (neighbour
     counts differ by at most one along every prefix implies a common MCS
     ordering), with corollaries insert_matching_common_order,
@@ -184,7 +193,7 @@ review:
     (scripts/gen_comparator_wrappers.py). Each proof builds under lake build
     with the leanchecker external kernel checker passing and no sorry / axiom /
     admit / unsafe / native_decide in the Solution module; the AxiomAudit
-    confirms all 31 comparator theorems depend only on propext, Quot.sound and
+    confirms all 34 comparator theorems depend only on propext, Quot.sound and
     Classical.choice. The supervisor (Gregory Morse) is the independent
     reviewer: he reviewed the theorem statements against the intended
     mathematical claims and the stability-boundary statements, and confirmed the
@@ -229,14 +238,16 @@ alignment:
       lean: "Challenge.mcsOrder_eq_greedySuffix"
       module: "Solution"
       status: "proved"
-    - source: "Executable insertion produces a valid MCS ordering"
-      lean: "Challenge.exec_insert_valid"
+    - source: "Executable insertion: the recomputed mcsOrder of the flipped matrix is a valid MCS ordering."
+      lean: "Challenge.exec_insert_recompute_valid"
       module: "Solution"
       status: "proved"
-    - source: "Executable deletion produces a valid MCS ordering"
-      lean: "Challenge.exec_delete_valid"
+      note: "Certifies full recomputation (not dynamic update). The dynamic-update refinement is exec_insert_update_eq."
+    - source: "Executable deletion: the recomputed mcsOrder of the flipped matrix is a valid MCS ordering."
+      lean: "Challenge.exec_delete_recompute_valid"
       module: "Solution"
       status: "proved"
+      note: "Certifies full recomputation (not dynamic update). The dynamic-update refinement is exec_delete_update_eq."
     - source: "The canonical MCS ordering of a graph is unique (the lowest-index tie-break fixes every step)."
       lean: "Challenge.IsMCSOrdering_unique"
       module: "Solution"

@@ -209,7 +209,7 @@ theorem mcsOrder_eq_greedySuffix
 /-- After an executable edge insertion, the recomputed `mcsOrder` of the new
 matrix is a valid abstract MCS ordering of the new graph, and its values are
 exactly the executable output. -/
-theorem exec_insert_valid (n : ℕ) (a : Adj n) (u v : Vert n)
+theorem exec_insert_recompute_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     (hsymm : ∀ i j : ℕ, getAdj a i j = getAdj a j i)
     (hloop : ∀ i : ℕ, getAdj a i i = false)
     (hshape : WellShaped n a)
@@ -238,7 +238,7 @@ theorem exec_insert_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     unfold WellShaped ExecFlip.WellShaped at *
     exact hshape
   obtain ⟨ord, hord_dyn, hmap⟩ :=
-    ExecFlip.exec_insert_valid n a u v hsymmE hloopE hshapeE huv
+    ExecFlip.exec_insert_recompute_valid n a u v hsymmE hloopE hshapeE huv
   refine ⟨ord, ?_, ?_⟩
   · have hUG : Transport.toDyn G' = Exec.toUGraph (Exec.insertEdge n a u.val v.val)
         (ExecFlip.insertEdge_symm a u.val v.val hshapeE hsymmE)
@@ -254,7 +254,7 @@ theorem exec_insert_valid (n : ℕ) (a : Adj n) (u v : Vert n)
 
 /-- After an executable edge deletion, the recomputed `mcsOrder` of the new
 matrix is a valid abstract MCS ordering of the new graph. -/
-theorem exec_delete_valid (n : ℕ) (a : Adj n) (u v : Vert n)
+theorem exec_delete_recompute_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     (hsymm : ∀ i j : ℕ, getAdj a i j = getAdj a j i)
     (hloop : ∀ i : ℕ, getAdj a i i = false)
     (hshape : WellShaped n a)
@@ -283,7 +283,7 @@ theorem exec_delete_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     unfold WellShaped ExecFlip.WellShaped at *
     exact hshape
   obtain ⟨ord, hord_dyn, hmap⟩ :=
-    ExecFlip.exec_delete_valid n a u v hsymmE hloopE hshapeE huv
+    ExecFlip.exec_delete_recompute_valid n a u v hsymmE hloopE hshapeE huv
   refine ⟨ord, ?_, ?_⟩
   · have hUG : Transport.toDyn G' = Exec.toUGraph (Exec.deleteEdge n a u.val v.val)
         (ExecFlip.deleteEdge_symm a u.val v.val hshapeE hsymmE)

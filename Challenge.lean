@@ -468,7 +468,7 @@ theorem mcsOrder_eq_greedySuffix
 /-- After an executable edge insertion, the recomputed `mcsOrder` of the new
 matrix is a valid abstract MCS ordering of the new graph, and its values are
 exactly the executable output. -/
-theorem exec_insert_valid (n : ℕ) (a : Adj n) (u v : Vert n)
+theorem exec_insert_recompute_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     (hsymm : ∀ i j : ℕ, getAdj a i j = getAdj a j i)
     (hloop : ∀ i : ℕ, getAdj a i i = false)
     (hshape : WellShaped n a)
@@ -484,7 +484,7 @@ theorem exec_insert_valid (n : ℕ) (a : Adj n) (u v : Vert n)
 
 /-- After an executable edge deletion, the recomputed `mcsOrder` of the new
 matrix is a valid abstract MCS ordering of the new graph. -/
-theorem exec_delete_valid (n : ℕ) (a : Adj n) (u v : Vert n)
+theorem exec_delete_recompute_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     (hsymm : ∀ i j : ℕ, getAdj a i j = getAdj a j i)
     (hloop : ∀ i : ℕ, getAdj a i i = false)
     (hshape : WellShaped n a)

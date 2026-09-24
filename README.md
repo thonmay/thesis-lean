@@ -72,7 +72,7 @@ so the posed and proved types stay textually identical.
 | Locality | `legal_upto_earlierPos`, `legal_after_laterPos`, `delete_legal_between`, `insert_break_iff`, `insert_update_eq_self_iff`, `delete_update_eq_self_iff` |
 | Executable refinement | `exec_insert_update_eq`, `exec_delete_update_eq` |
 | Unit cost | `exec_insert_cost_le`, `exec_delete_cost_le`, `exec_insert_cost_of_no_break`, `exec_delete_cost_of_no_break`, `exec_insert_cost_of_break`, `exec_delete_cost_of_break` |
-| Executable bridge | `setEdge_preserves_symm`, `setEdge_preserves_loopless`, `mcsOrder_eq_greedySuffix`, `exec_insert_valid`, `exec_delete_valid` |
+| Executable bridge | `setEdge_preserves_symm`, `setEdge_preserves_loopless`, `mcsOrder_eq_greedySuffix`, `exec_insert_recompute_valid`, `exec_delete_recompute_valid` |
 | Stability | `exists_common_ordering`, `insert_matching_common_order`, `delete_matching_common_order`, `flip_common_order` |
 | Stability obstructions | `triangle_no_common_order`, `p4_no_common_order`, `mixed_matching_no_common_order` |
 

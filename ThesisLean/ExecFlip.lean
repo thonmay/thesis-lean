@@ -27,7 +27,7 @@ The theorems here assemble the two:
   2. `insert_is_flip` / `delete_is_flip`: the abstract graph of the flipped
      matrix differs from that of `a` by exactly the one edge `{u, v}` (the
      `FlipOf` hypothesis of the abstract theorems).
-  3. `exec_insert_valid` / `exec_delete_valid`: after an executable flip, the
+  3. `exec_insert_recompute_valid` / `exec_delete_recompute_valid`: after an executable flip, the
      recomputed `Exec.mcsOrder` is a valid abstract MCS ordering of the new
      graph.
 
@@ -42,7 +42,7 @@ The theorems here assemble the two:
   (no such hypothesis) is false in that generality.
 * `setEdge_preserves_loopless` requires `u ≠ v`: if `u = v` and `present =
   true`, the flip would set the diagonal entry, breaking loop-freeness.
-* `exec_delete_valid` does NOT require the deleted edge to be present: the
+* `exec_delete_recompute_valid` does NOT require the deleted edge to be present: the
   executable recomputation only needs the flipped matrix to be symmetric,
   loop-free, and well-shaped.  (The abstract `delete_update_valid` needs the
   absence of the edge; the recomputation path does not.)
@@ -312,7 +312,7 @@ theorem delete_is_flip (n : ℕ) (a : Adj n) (u v : Vert n)
 /-- After an executable edge insertion, the recomputed `Exec.mcsOrder` of the
 new matrix is a valid abstract MCS ordering of the new graph, and its values
 are exactly `Exec.mcsOrder` of the new matrix. -/
-theorem exec_insert_valid (n : ℕ) (a : Adj n) (u v : Vert n)
+theorem exec_insert_recompute_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     (hsymm : ∀ i j : ℕ, Exec.getAdj a i j = Exec.getAdj a j i)
     (hloop : ∀ i : ℕ, Exec.getAdj a i i = false)
     (hshape : WellShaped n a)
@@ -339,7 +339,7 @@ theorem exec_insert_valid (n : ℕ) (a : Adj n) (u v : Vert n)
 /-- After an executable edge deletion, the recomputed `Exec.mcsOrder` of the
 new matrix is a valid abstract MCS ordering of the new graph.  (The executable
 recomputation needs no assumption that the edge was present.) -/
-theorem exec_delete_valid (n : ℕ) (a : Adj n) (u v : Vert n)
+theorem exec_delete_recompute_valid (n : ℕ) (a : Adj n) (u v : Vert n)
     (hsymm : ∀ i j : ℕ, Exec.getAdj a i j = Exec.getAdj a j i)
     (hloop : ∀ i : ℕ, Exec.getAdj a i i = false)
     (hshape : WellShaped n a)

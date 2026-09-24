@@ -19,8 +19,8 @@ the comparator list.
 #print axioms Challenge.setEdge_preserves_symm
 #print axioms Challenge.setEdge_preserves_loopless
 #print axioms Challenge.mcsOrder_eq_greedySuffix
-#print axioms Challenge.exec_insert_valid
-#print axioms Challenge.exec_delete_valid
+#print axioms Challenge.exec_insert_recompute_valid
+#print axioms Challenge.exec_delete_recompute_valid
 #print axioms Challenge.IsMCSOrdering_unique
 #print axioms Challenge.insert_update_eq_initOrder
 #print axioms Challenge.delete_update_eq_initOrder
