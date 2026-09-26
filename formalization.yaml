@@ -12,8 +12,10 @@ project:
     then regreedies the suffix (probe-then-repair). Correctness - every order
     produced stays a valid MCS ordering of the updated graph, and in fact
     equals the from-scratch canonical ordering - is machine-checked in Lean 4 /
-    Mathlib, together with locality (only positions inside the window can
-    change), an executable boolean-adjacency implementation proved to refine the
+    Mathlib, together with locality (the first position whose choice can change
+    lies inside the window between the endpoints; after a break the suffix is
+    regreedyed, so positions past the window may also change), an executable
+    boolean-adjacency implementation proved to refine the
     abstract update, and per-update cost in a unit-cost query model (counting
     legality checks and pick steps along the real executable control flow): at
     most n units for an insertion and n + 1 for a deletion, so the worst case
@@ -177,7 +179,7 @@ fidelity:
     legality check (exec_delete_cost_of_no_break proves the cost is 1 when no
     regreedy is needed). The regreedy step (greedySuffix) is noncomputable
     (Classical.choice) in the abstract model; the executable layer
-    (execRegreedyFrom via bestPick) is computable and its refinement to the
+    (regreedy via bestPick) is computable and its refinement to the
     abstract regreedy is proved (regreedy_eq_greedySuffix), so the cost count
     tracks the computable implementation.
 
@@ -193,7 +195,7 @@ review:
     (scripts/gen_comparator_wrappers.py). Each proof builds under lake build
     with the leanchecker external kernel checker passing and no sorry / axiom /
     admit / unsafe / native_decide in the Solution module; the AxiomAudit
-    confirms all 34 comparator theorems depend only on propext, Quot.sound and
+    confirms all 36 comparator theorems depend only on propext, Quot.sound and
     Classical.choice. The supervisor (Gregory Morse) is the independent
     reviewer: he reviewed the theorem statements against the intended
     mathematical claims and the stability-boundary statements, and confirmed the
@@ -333,6 +335,16 @@ alignment:
       module: "Solution"
       status: "proved"
       note: "Cost: a deletion that fires costs one check plus at most n - laterPos regreedy steps."
+    - source: "Cost link: the counted insertion update returns the same ordering as the plain executable insertion update."
+      lean: "Challenge.exec_insert_update_c_fst"
+      module: "Solution"
+      status: "proved"
+      note: "Links the unit-cost bound to the real executable update: the first projection of the counted update equals the plain update."
+    - source: "Cost link: the counted deletion update returns the same ordering as the plain executable deletion update."
+      lean: "Challenge.exec_delete_update_c_fst"
+      module: "Solution"
+      status: "proved"
+      note: "Links the unit-cost bound to the real executable update: the first projection of the counted update equals the plain update."
     - source: "Stability: if G' neighbour counts exceed G's by at most one along every chosen set, the two graphs share an MCS ordering."
       lean: "Challenge.exists_common_ordering"
       module: "Solution"

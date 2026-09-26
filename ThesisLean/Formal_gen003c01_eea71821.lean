@@ -41,9 +41,10 @@ Formalization.  We reuse the graph/invariant framework of
 that `init`, `insert_edge`, and `delete_edge` preserve the invariant for
 every finite graph and every legal edge flip.
 
-This file is *Stage 1/3*: definitions, the validity predicate, and the
-theorem/lemma statements only, with `sorry` placeholders for every proof.
-Later stages fill in the proofs and remove all `sorry`s.
+This file is the *proved* core of the candidate: definitions, the validity
+predicate, and the theorem/lemma statements with complete proofs (no `sorry`).
+The three main theorems (`init`, `insert_edge`, `delete_edge` preserve the
+invariant) are discharged here.
 -/
 
 noncomputable section

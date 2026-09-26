@@ -527,14 +527,18 @@ lemma regreedyC_snd_le (pref : List ℕ) : (regreedyC a pref).2 ≤ a.length - p
   simp only [regreedyC]
   simpa using this
 
-theorem execInsertUpdateC_fst (u v : ℕ) :
+/-- The counted insertion update returns the same list as the plain update (the
+count is the second projection). This is the link between the cost bounds and
+the real executable update. -/
+theorem exec_insert_update_c_fst (u v : ℕ) :
     (execInsertUpdateC a o u v).1 = execInsertUpdate a o u v := by
   simp only [execInsertUpdateC, execInsertUpdate, insertProbeC, insertProbe, execFirstBreakC_fst]
   cases execFirstBreak a o (execEarlierPos o u v + 1) (insertWindow o u v) with
   | none => rfl
   | some k => simp [regreedyC_fst]
 
-theorem execDeleteUpdateC_fst (u v : ℕ) :
+/-- The counted deletion update returns the same list as the plain update. -/
+theorem exec_delete_update_c_fst (u v : ℕ) :
     (execDeleteUpdateC a o u v).1 = execDeleteUpdate a o u v := by
   unfold execDeleteUpdateC execDeleteUpdate
   split_ifs <;> simp [regreedyC_fst]

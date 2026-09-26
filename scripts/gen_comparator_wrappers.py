@@ -77,6 +77,10 @@ THEOREMS = [
     ("exec_delete_cost_of_break", """∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
       pickAt a (List.take (execLaterPos o u v) o) ≠ execLaterVert o u v →
         (execDeleteUpdateC a o u v).2 ≤ 1 + (List.length a - execLaterPos o u v)"""),
+    ("exec_insert_update_c_fst", """∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      (execInsertUpdateC a o u v).1 = execInsertUpdate a o u v"""),
+    ("exec_delete_update_c_fst", """∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      (execDeleteUpdateC a o u v).1 = execDeleteUpdate a o u v"""),
     ("exists_common_ordering", """∀ {n : ℕ} (G G' : UGraph n),
       (∀ (S : Finset (Vert n)) (x : Vert n), G.neigh S x ≤ G'.neigh S x) →
         (∀ (S : Finset (Vert n)) (x : Vert n), G'.neigh S x ≤ G.neigh S x + 1) →
@@ -114,6 +118,8 @@ DOCS = {
     "exec_delete_cost_of_no_break": "Cost: a deletion whose probe does not fire costs exactly one check.",
     "exec_insert_cost_of_break": "Cost: an insertion that breaks at k costs the probe checks plus at most n - k regreedy steps.",
     "exec_delete_cost_of_break": "Cost: a deletion that fires costs one check plus at most n - laterPos regreedy steps.",
+    "exec_insert_update_c_fst": "Cost link: the counted insertion update returns the same ordering as the plain executable insertion update.",
+    "exec_delete_update_c_fst": "Cost link: the counted deletion update returns the same ordering as the plain executable deletion update.",
     "exists_common_ordering": "Stability: if G' neighbour counts exceed G's by at most one along every chosen set, the two graphs share an MCS ordering.",
     "insert_matching_common_order": "Stability: inserting a matching leaves a common MCS ordering.",
     "delete_matching_common_order": "Stability: deleting a matching leaves a common MCS ordering.",

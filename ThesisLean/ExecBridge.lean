@@ -3,16 +3,14 @@ import ThesisLean.Exec
 import ThesisLean.Formal_gen001c01_3939115c
 
 /-!
-# Executable/abstract bridge — plan and partial results
+# Executable `bestPick` selection helper
 
-The executable `Exec.mcsOrder` (computable, `#eval`-verified on small graphs)
-should be proven equivalent to the abstract `DynamicMCS` MCS-ordering
-invariant. This file records the planned bridge theorems and any proved
-helper facts. It is intentionally kept free of `sorry`/`axiom`.
-
-Status: the `better` selection relation is defined; the full equivalence
-theorem is planned but not yet proved (see `PLANNED` below). Completion is
-scheduled for the lean-prover agent once its model pin is fixed (restart).
+Defines the `better` selection relation used inside `Exec.bestPick` and proves
+it is definitionally the `bestPick` foldl lambda. The executable/abstract
+equivalence `mcsOrder_eq_greedySuffix` (the bridge this file originally planned)
+is now proved in `ThesisLean/BridgeAssembly.lean`, assembled from
+`CardBridge.lean` and `BridgeParts{A,B,C}.lean`; the helper lemmas below the
+`PLANNED` block were completed there. This file is `sorry`/`axiom`-free.
 -/
 
 open DynamicMCS

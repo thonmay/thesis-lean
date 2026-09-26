@@ -38,6 +38,8 @@ the comparator list.
 #print axioms Challenge.exec_delete_cost_of_no_break
 #print axioms Challenge.exec_insert_cost_of_break
 #print axioms Challenge.exec_delete_cost_of_break
+#print axioms Challenge.exec_insert_update_c_fst
+#print axioms Challenge.exec_delete_update_c_fst
 #print axioms Challenge.exists_common_ordering
 #print axioms Challenge.insert_matching_common_order
 #print axioms Challenge.delete_matching_common_order

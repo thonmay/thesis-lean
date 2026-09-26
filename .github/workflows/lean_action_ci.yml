@@ -38,8 +38,18 @@ jobs:
       - name: Check with leanchecker (external independent kernel)
         run: |
           set -euo pipefail
-          for olean in .lake/build/lib/lean/ThesisLean/*.olean .lake/build/lib/lean/Challenge.olean .lake/build/lib/lean/Solution.olean; do
-            mod="${olean%.olean}"; mod="${mod#.lake/build/lib/lean/}"; mod="${mod//\//.}"
+          # Iterate over tracked source modules, not the build directory: the CI
+          # cache can restore .olean files for modules that have been deleted,
+          # which would otherwise be leanchecked (or silently skipped) here.
+          # The olean guard skips tracked files that are not build targets
+          # (e.g. AxiomAudit.lean, which imports Solution but nothing imports it).
+          for src in $(git ls-files '*.lean'); do
+            olean=".lake/build/lib/lean/${src%.lean}.olean"
+            if [ ! -f "$olean" ]; then
+              echo "leanchecker: skip $src (no olean, not a build target)"
+              continue
+            fi
+            mod="${src%.lean}"; mod="${mod//\//.}"
             echo "leanchecker: $mod"
             lake env leanchecker "$mod"
           done

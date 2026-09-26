@@ -18,9 +18,10 @@ Yannakakis (1984). It numbers vertices from 1 to *n* by repeatedly selecting
 the unnumbered vertex with the most already-numbered neighbours, breaking ties
 by lowest index. On a chordal graph, the reverse of any MCS ordering is a
 perfect elimination ordering, which gives a linear-time chordality test. MCS
-is simpler and faster than the lexicographic breadth-first search (LexBFS) of
-Rose, Tarjan and Lueker (1976), though it produces a superset of LexBFS
-orderings.
+is a simpler variant of the lexicographic breadth-first search (LexBFS) of
+Rose, Tarjan and Lueker (1976), with the same `O(n + m)` running time; the two
+searches produce incomparable families of orderings on general graphs (e.g.
+`K₂,₃`), with MCS a superset of LexBFS only on chordal graphs.
 
 This formalization studies the *dynamic* problem: given an MCS ordering of a
 graph, can we update it efficiently after a single edge insertion or deletion,
@@ -51,14 +52,17 @@ The formalization proves, for every graph size `n`:
   exceeds that in the other by at most one along every chosen prefix, the two
   graphs share an MCS ordering. In particular, inserting or deleting a
   *matching*, or flipping a single edge, always preserves a common MCS
-  ordering. This hypothesis is tight: inserting a triangle, inserting a
-  `P_4`, or a mixed matching update (one insert + one delete) can each destroy
-  every common ordering — certified by kernel `decide` on explicit small
-  instances.
+  ordering. The `+1` bound is sharp in both directions: inserting a triangle
+  (`n = 5`), inserting a `P_4` (`n = 6`), or a mixed matching update (one
+  insert + one delete, `n = 4`) can each destroy every common ordering —
+  certified by kernel `decide` on explicit small instances. The hypothesis is
+  sufficient, not necessary: a violation need not break a common ordering (for
+  example, inserting a 2-edge path inflates one vertex by two yet leaves a
+  common ordering on every host graph up to `n = 6`).
 
 ## Theorem map
 
-The Palomar comparator contract is the 34-name list in
+The Palomar comparator contract is the 36-name list in
 [`comparator.json`](comparator.json). Each name is a real theorem in
 [`Solution.lean`](Solution.lean) with a matching `sorry` statement in
 [`Challenge.lean`](Challenge.lean). Both files are generated from a single
@@ -71,12 +75,12 @@ so the posed and proved types stay textually identical.
 | Uniqueness / update = recompute | `IsMCSOrdering_unique`, `insert_update_eq_initOrder`, `delete_update_eq_initOrder` |
 | Locality | `legal_upto_earlierPos`, `legal_after_laterPos`, `delete_legal_between`, `insert_break_iff`, `insert_update_eq_self_iff`, `delete_update_eq_self_iff` |
 | Executable refinement | `exec_insert_update_eq`, `exec_delete_update_eq` |
-| Unit cost | `exec_insert_cost_le`, `exec_delete_cost_le`, `exec_insert_cost_of_no_break`, `exec_delete_cost_of_no_break`, `exec_insert_cost_of_break`, `exec_delete_cost_of_break` |
+| Unit cost | `exec_insert_cost_le`, `exec_delete_cost_le`, `exec_insert_cost_of_no_break`, `exec_delete_cost_of_no_break`, `exec_insert_cost_of_break`, `exec_delete_cost_of_break`, `exec_insert_update_c_fst`, `exec_delete_update_c_fst` |
 | Executable bridge | `setEdge_preserves_symm`, `setEdge_preserves_loopless`, `mcsOrder_eq_greedySuffix`, `exec_insert_recompute_valid`, `exec_delete_recompute_valid` |
 | Stability | `exists_common_ordering`, `insert_matching_common_order`, `delete_matching_common_order`, `flip_common_order` |
 | Stability obstructions | `triangle_no_common_order`, `p4_no_common_order`, `mixed_matching_no_common_order` |
 
-All 34 theorems audit to only the three standard Lean axioms:
+All 36 theorems audit to only the three standard Lean axioms:
 `propext`, `Quot.sound`, `Classical.choice` (no `sorry`, no `native_decide`).
 
 ## Repository layout

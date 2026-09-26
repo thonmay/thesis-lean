@@ -422,6 +422,16 @@ theorem exec_delete_cost_of_break : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u 
         (execDeleteUpdateC a o u v).2 ≤ 1 + (List.length a - execLaterPos o u v) :=
   Proofs.exec_delete_cost_of_break
 
+/-- Cost link: the counted insertion update returns the same ordering as the plain executable insertion update. -/
+theorem exec_insert_update_c_fst : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      (execInsertUpdateC a o u v).1 = execInsertUpdate a o u v :=
+  Proofs.exec_insert_update_c_fst
+
+/-- Cost link: the counted deletion update returns the same ordering as the plain executable deletion update. -/
+theorem exec_delete_update_c_fst : ∀ {n : ℕ} (a : Adj n) (o : List ℕ) (u v : ℕ),
+      (execDeleteUpdateC a o u v).1 = execDeleteUpdate a o u v :=
+  Proofs.exec_delete_update_c_fst
+
 /-- Stability: if G' neighbour counts exceed G's by at most one along every chosen set, the two graphs share an MCS ordering. -/
 theorem exists_common_ordering : ∀ {n : ℕ} (G G' : UGraph n),
       (∀ (S : Finset (Vert n)) (x : Vert n), G.neigh S x ≤ G'.neigh S x) →
