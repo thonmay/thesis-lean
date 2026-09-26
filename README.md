@@ -53,10 +53,12 @@ The formalization proves, for every graph size `n`:
   exceeds that in the other by at most one along every chosen prefix, the two
   graphs share an MCS ordering. In particular, inserting or deleting a
   *matching*, or flipping a single edge, always preserves a common MCS
-  ordering. The `+1` bound is sharp in both directions: inserting a triangle
-  (`n = 5`), inserting a `P_4` (`n = 6`), or a mixed matching update (one
-  insert + one delete, `n = 4`) can each destroy every common ordering —
-  certified by kernel `decide` on explicit small instances. The hypothesis is
+  ordering. Neither part of the hypothesis can simply be dropped: inserting a
+  triangle (`n = 5`) or a `P_4` (`n = 6`) shows the `+1` bound cannot be
+  relaxed to `+2`, and a mixed matching update (one insert + one delete,
+  `n = 4`) shows the one-directional (insert-only or delete-only) condition is
+  needed — each destroys every common ordering, certified by kernel `decide`
+  on explicit small instances. The hypothesis is
   sufficient, not necessary: a violation need not break a common ordering (for
   example, inserting a 2-edge path inflates one vertex by two yet leaves a
   common ordering on every host graph up to `n = 6`).

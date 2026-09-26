@@ -46,11 +46,13 @@ sources:
       maintenance under single-edge insertions and deletions. We are not aware
       of a prior formalization of dynamic MCS ordering maintenance in any
       proof assistant; the algorithm itself builds on the classical MCS
-      heuristic of Tarjan and Yannakakis. The nearest prior art is Banerjee,
-      Raman and Satti (CSR 2018), who maintain a perfect elimination ordering
-      of a chordal graph under edge deletions only, and Brandstadt, Dragan and
+      heuristic of Tarjan and Yannakakis. The nearest prior art is Ibarra
+      (SODA 1999; ACM TALG 2008), who maintains a clique-tree representation of
+      a chordal graph under edge insertions and deletions, Banerjee, Raman and
+      Satti (CSR 2018), who maintain a perfect elimination ordering of a
+      chordal graph under edge deletions only, and Brandstadt, Dragan and
       Nicolai (1997), whose common-PEO-of-powers result is negative for MCS;
-      neither states our insertion+deletion locality or our stability-boundary
+      none states our insertion+deletion locality or our stability-boundary
       result (see docs/LITERATURE.md). The correctness, locality, executable
       refinement, unit-cost (worst case n for an insertion, n + 1 for a
       deletion, matching static recomputation) and stability-boundary theorems
@@ -87,6 +89,19 @@ sources:
     authors:
       - "Robert Endre Tarjan"
       - "Mihalis Yannakakis"
+  - title: >-
+      Fully Dynamic Algorithms for Chordal Graphs and Split Graphs
+    relationship: background
+    note: >-
+      Ibarra (ACM Trans. Algorithms 4(4):40, 2008, doi:10.1145/1383369.1383371;
+      conference version "Fully Dynamic Algorithms for Chordal Graphs", SODA
+      1999, pp. 923-924) gives the first fully dynamic algorithm for chordal
+      graphs, maintaining a clique-tree representation under edge insertions
+      and deletions that preserve chordality. This is the nearest fully dynamic
+      prior art; it maintains a clique tree of a chordal graph, not an MCS
+      ordering of an arbitrary graph.
+    authors:
+      - "Louis Ibarra"
   - title: >-
       Maintaining Chordal Graphs Dynamically: Improved Upper and Lower Bounds
     relationship: background
@@ -146,8 +161,10 @@ status:
     ordering), with corollaries insert_matching_common_order,
     delete_matching_common_order and flip_common_order; and the matching
     obstructions are certified by kernel decide (triangle_no_common_order,
-    p4_no_common_order, mixed_matching_no_common_order), showing the matching
-    hypothesis cannot be dropped. All headline theorems in
+    p4_no_common_order, mixed_matching_no_common_order), showing that the +1
+    bound cannot be relaxed to +2 and that the one-directional (insert-only or
+    delete-only) condition cannot be dropped; the hypothesis is sufficient but
+    not necessary. All headline theorems in
     Solution.lean are proved with no sorry; Challenge.lean restates them with
     deliberate sorry bodies for the comparator.
   sorry_count: 0
@@ -160,12 +177,12 @@ automation:
       models: ["deepseek-ai/DeepSeek-V4-Flash-0731"]
       framework: "enlcode agent harness over Lean 4 / lean4-repl / lean-lsp"
       tool_setup: >-
-        Core development phase: interactive proving against mathlib v4.35.0-rc2
-        on a remote 96-core host (lake build + leanchecker), plus manual
-        reasoning and restructuring. This phase produced the stability module
-        (common-ordering theorem and matching corollaries), the correctness and
-        uniqueness module, the executable-update refinement and unit-cost model,
-        the canonical definitions (ChallengeDefs), and the CI checks.
+        Original development phase (the v1-v3 bundle): interactive proving
+        against mathlib on a remote 96-core host (lake build + leanchecker),
+        plus manual reasoning and restructuring. This phase produced the
+        DynamicMCS core development (definitions, probe-then-repair updates and
+        their validity proofs), the executable Exec layer and its bridge to the
+        abstract model.
       cost:
         wall_time: "many developer-hours across repeated proof rounds"
         spend_usd: "not tracked"
@@ -174,6 +191,32 @@ automation:
         Statement-first staged development (definitions -> lemma statements ->
         proofs one at a time), interactive goal exploration with lean4-repl,
         and per-file lake build checks.
+    - method: "agent"
+      models: ["Claude Opus 5.5"]
+      framework: "Devin CLI agent (Cognition)"
+      tool_setup: >-
+        v4 repair planning, first-draft development and review, on the author's
+        laptop with CI builds on GitHub Actions. Planning: the resubmission
+        roadmap and the brute-force stability experiments
+        (scripts/mcs_stability.py). First drafts: the single-source canonical
+        definitions (ChallengeDefs) with the explicit greedyPick, the bounded
+        insertion probe, the Correctness module (uniqueness, locality,
+        update = recompute), the ExecUpdate module (executable updates,
+        refinement, unit-cost instrumentation), the Stability module
+        (common-ordering theorem, matching and single-flip corollaries,
+        certified counterexample search), and the CI definitions-sync and
+        axiom-audit checks. Several of these drafts did not yet compile; their
+        proof bodies were repaired in the phase below. Review: independent
+        review passes of the subsequent commits (statement semantics, metadata
+        claims, Palomar preflight diagnosis). The corresponding commits carry a
+        Co-Authored-By: Devin trailer.
+      cost:
+        wall_time: "several hours across planning, drafting and review sessions"
+        spend_usd: "not tracked"
+        hardware: "author laptop; GitHub Actions runners for builds"
+      prompting_notes: >-
+        Plan-first workflow with an approved roadmap; statements checked against
+        the definitions before proofs; builds verified through CI logs.
     - method: "agent"
       models: ["Qwen/Qwen3.8-27B-FP8"]
       framework: "enlcode agent harness over Lean 4 / lean4-repl / lake build"
@@ -197,7 +240,7 @@ automation:
   spend_usd: "not tracked"
   notes: >-
     The proof development was carried out interactively with AI assistance from
-    local open-weight models (the agent harnesses above) and manually checked
+    the agents above (local open-weight models and the Devin agent) and checked
     with lake build and leanchecker on every stage. The palette of transport /
     bridge lemmas was written by hand and each intermediate lemma verified
     independently.
