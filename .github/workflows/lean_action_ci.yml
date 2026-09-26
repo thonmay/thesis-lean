@@ -38,12 +38,16 @@ jobs:
       - name: Check with leanchecker (external independent kernel)
         run: |
           set -euo pipefail
-          # Iterate over tracked source modules, not the build directory: the CI
-          # cache can restore .olean files for modules that have been deleted,
-          # which would otherwise be leanchecked (or silently skipped) here.
-          # The olean guard skips tracked files that are not build targets
-          # (e.g. AxiomAudit.lean, which imports Solution but nothing imports it).
-          for src in $(git ls-files '*.lean'); do
+          # Iterate over the tracked artifact source modules, not the build
+          # directory: the CI cache can restore .olean files for modules that
+          # have been deleted, which would otherwise be leanchecked (or silently
+          # skipped) here. The pathspec lists exactly the submission artifact
+          # (ThesisLean leaves + Challenge + Solution); it deliberately excludes
+          # the root umbrella ThesisLean.lean (a pure import list with no
+          # declarations, redundant to re-check) and AxiomAudit.lean (not a
+          # build target). The olean guard is a belt-and-braces skip for any
+          # tracked file that is not a build target.
+          for src in $(git ls-files 'ThesisLean/*.lean' Challenge.lean Solution.lean); do
             olean=".lake/build/lib/lean/${src%.lean}.olean"
             if [ ! -f "$olean" ]; then
               echo "leanchecker: skip $src (no olean, not a build target)"
