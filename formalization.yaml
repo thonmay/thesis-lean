@@ -126,9 +126,12 @@ automation:
       models: ["deepseek-ai/DeepSeek-V4-Flash-0731"]
       framework: "enlcode agent harness over Lean 4 / lean4-repl / lean-lsp"
       tool_setup: >-
-        AI-assisted interactive proving against mathlib v4.35.0-rc2 on a remote
-        96-core host (lake build + leanchecker), plus manual reasoning and
-        restructuring of the proof development.
+        Core development phase: interactive proving against mathlib v4.35.0-rc2
+        on a remote 96-core host (lake build + leanchecker), plus manual
+        reasoning and restructuring. This phase produced the stability module
+        (common-ordering theorem and matching corollaries), the correctness and
+        uniqueness module, the executable-update refinement and unit-cost model,
+        the canonical definitions (ChallengeDefs), and the CI checks.
       cost:
         wall_time: "many developer-hours across repeated proof rounds"
         spend_usd: "not tracked"
@@ -138,16 +141,17 @@ automation:
         proofs one at a time), interactive goal exploration with lean4-repl,
         and per-file lake build checks.
     - method: "agent"
-      models: ["zai-org/GLM-5.2"]
+      models: ["Qwen/Qwen3.8-27B-FP8"]
       framework: "enlcode agent harness over Lean 4 / lean4-repl / lake build"
       tool_setup: >-
-        Second-pass repair and comparator wiring: fixed the executable-update
-        refinement and unit-cost proofs, added the stability module, and wired
-        the locality / refinement / cost / stability theorems into the
+        Repair and wiring phase: fixed the executable-update refinement and
+        unit-cost proof bodies, added the certified stability counterexamples,
+        and wired the locality / refinement / cost / stability theorems into the
         comparator through generated thin wrappers (signatures copied verbatim
         from #check to keep Challenge.lean and Solution.lean textually
-        identical). Verified on a remote 96-core host with lake build and the
-        leanchecker external kernel.
+        identical), plus the README and formalization.yaml documentation.
+        Verified on a remote 96-core host with lake build and the leanchecker
+        external kernel.
       cost:
         wall_time: "several developer-hours across repair and wiring rounds"
         spend_usd: "not tracked"
@@ -158,10 +162,11 @@ automation:
         to avoid transcription drift between the posed and proved statements.
   spend_usd: "not tracked"
   notes: >-
-    The proof development was carried out interactively with AI assistance
-    (the agent harnesses above) and manually checked with lake build and
-    leanchecker on every stage. The palette of transport / bridge lemmas was
-    written by hand and each intermediate lemma verified independently.
+    The proof development was carried out interactively with AI assistance from
+    local open-weight models (the agent harnesses above) and manually checked
+    with lake build and leanchecker on every stage. The palette of transport /
+    bridge lemmas was written by hand and each intermediate lemma verified
+    independently.
 
 fidelity:
   divergences: >-
@@ -197,10 +202,11 @@ review:
     admit / unsafe / native_decide in the Solution module; the AxiomAudit
     confirms all 36 comparator theorems depend only on propext, Quot.sound and
     Classical.choice. The supervisor (Gregory Morse) is the independent
-    reviewer: he reviewed the theorem statements against the intended
-    mathematical claims and the stability-boundary statements, and confirmed the
-    worst-case cost equals static recomputation (no asymptotic separation is
-    claimed).
+    reviewer and co-author: he authored the review of the previous submission
+    (verdict.txt) that drove these repairs, and confirmed the worst-case cost
+    equals static recomputation (no asymptotic separation is claimed). This
+    commit has not yet been re-reviewed by him; the machine-checked build,
+    leanchecker and axiom audit above are the current verification.
 
 alignment:
   namespace: "Challenge"
