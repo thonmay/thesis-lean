@@ -19,9 +19,10 @@ the unnumbered vertex with the most already-numbered neighbours, breaking ties
 by lowest index. On a chordal graph, the reverse of any MCS ordering is a
 perfect elimination ordering, which gives a linear-time chordality test. MCS
 is a simpler variant of the lexicographic breadth-first search (LexBFS) of
-Rose, Tarjan and Lueker (1976), with the same `O(n + m)` running time; the two
-searches produce incomparable families of orderings on general graphs (e.g.
-`K₂,₃`), with MCS a superset of LexBFS only on chordal graphs.
+Rose, Tarjan and Lueker (1976), with the same `O(n + m)` running time. The two
+searches produce incomparable families of orderings: neither contains the
+other, on general graphs (e.g. `K₂,₃`) and even on chordal graphs (e.g. a
+5-clique plus a vertex joined to one clique vertex and another joined to two).
 
 This formalization studies the *dynamic* problem: given an MCS ordering of a
 graph, can we update it efficiently after a single edge insertion or deletion,

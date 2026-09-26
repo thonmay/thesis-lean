@@ -46,7 +46,12 @@ sources:
       maintenance under single-edge insertions and deletions. We are not aware
       of a prior formalization of dynamic MCS ordering maintenance in any
       proof assistant; the algorithm itself builds on the classical MCS
-      heuristic of Tarjan and Yannakakis. The correctness, locality, executable
+      heuristic of Tarjan and Yannakakis. The nearest prior art is Banerjee,
+      Raman and Satti (CSR 2018), who maintain a perfect elimination ordering
+      of a chordal graph under edge deletions only, and Brandstadt, Dragan and
+      Nicolai (1997), whose common-PEO-of-powers result is negative for MCS;
+      neither states our insertion+deletion locality or our stability-boundary
+      result (see docs/LITERATURE.md). The correctness, locality, executable
       refinement, unit-cost (worst case n for an insertion, n + 1 for a
       deletion, matching static recomputation) and stability-boundary theorems
       are proved here in Lean 4 / Mathlib.
@@ -82,6 +87,35 @@ sources:
     authors:
       - "Robert Endre Tarjan"
       - "Mihalis Yannakakis"
+  - title: >-
+      Maintaining Chordal Graphs Dynamically: Improved Upper and Lower Bounds
+    relationship: background
+    note: >-
+      Banerjee, Raman and Satti (Computer Science - Theory and Applications,
+      13th Int. Computer Science Symposium in Russia, CSR 2018, LNCS 10846,
+      pp. 29-40, Springer, 2018) maintain a perfect elimination ordering of a
+      chordal graph under edge deletions only (decremental), with a different
+      window notion. This is the nearest prior art to the locality result here;
+      it is not the same statement (it is deletion-only and maintains a PEO,
+      not an MCS ordering under insertions and deletions).
+    authors:
+      - "Niranka Banerjee"
+      - "Venkatesh Raman"
+      - "Srinivasa Rao Satti"
+  - title: >-
+      LexBFS-orderings and powers of chordal graphs
+    relationship: background
+    note: >-
+      Brandstadt, Dragan and Nicolai (Discrete Mathematics 171(1-3):27-42,
+      1997, doi:10.1016/S0012-365X(96)00070-2) show any LexBFS-ordering of a
+      chordal graph is a common PEO of its odd powers, and state that the
+      analogous property fails for MCS even on trees. This is the nearest prior
+      art to the stability-boundary result here; it is negative for MCS and so
+      does not subsume the common-ordering theorem proved in this formalization.
+    authors:
+      - "Andreas Brandstadt"
+      - "Feodor F. Dragan"
+      - "Falk Nicolai"
 
 related_formalizations: []
 
