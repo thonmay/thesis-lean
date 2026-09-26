@@ -1,5 +1,5 @@
 ---
-agent: devin-local
+agent: enlcode
 session: flowery-nerve
 created: 2026-09-23T17:05:43Z
 ---
@@ -168,7 +168,7 @@ The verdict's G={01,02}, F={03,13} is not a counterexample (`0,2,1,3,4` is valid
    - fidelity: only the true divergences (unit-cost query model; adjacency-matrix executable; canonical vs set-valued MCS explained)
    - sources: exact Tarjan–Yannakakis citation; provenance per P0
    - review: supervisor + what they checked
-   - **automation: disclose every agent used (DeepSeek + Qwen harnesses, and the Devin agent that drafted the v4 repair and reviewed it)**
+   - **automation: disclose every agent used (DeepSeek + Qwen harnesses, and the Claude Opus 5.5 coding agent that drafted the v4 repair and reviewed it)**
    - axioms taken from the `AxiomAudit` output
 3. Gates: local `lake build`, CI build + leanchecker + AxiomAudit, then the **Palomar Preflight** workflow on the exact commit. Push only when you say so.
 4. Our own validation only (no supervisor gate): all §4 checks green on the exact commit. Send package A to the supervisor as an FYI, without waiting for a reply.

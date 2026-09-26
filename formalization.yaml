@@ -193,7 +193,7 @@ automation:
         and per-file lake build checks.
     - method: "agent"
       models: ["Claude Opus 5.5"]
-      framework: "Devin CLI agent (Cognition)"
+      framework: "CLI coding-agent harness over Lean 4 / lake build via CI"
       tool_setup: >-
         v4 repair planning, first-draft development and review, on the author's
         laptop with CI builds on GitHub Actions. Planning: the resubmission
@@ -208,8 +208,7 @@ automation:
         axiom-audit checks. Several of these drafts did not yet compile; their
         proof bodies were repaired in the phase below. Review: independent
         review passes of the subsequent commits (statement semantics, metadata
-        claims, Palomar preflight diagnosis). The corresponding commits carry a
-        Co-Authored-By: Devin trailer.
+        claims, Palomar preflight diagnosis).
       cost:
         wall_time: "several hours across planning, drafting and review sessions"
         spend_usd: "not tracked"
@@ -240,7 +239,8 @@ automation:
   spend_usd: "not tracked"
   notes: >-
     The proof development was carried out interactively with AI assistance from
-    the agents above (local open-weight models and the Devin agent) and checked
+    the agents above (local open-weight models and a Claude Opus 5.5 coding
+    agent) and checked
     with lake build and leanchecker on every stage. The palette of transport /
     bridge lemmas was written by hand and each intermediate lemma verified
     independently.
