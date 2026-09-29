@@ -1,4 +1,9 @@
-import Solution
+module
+
+import all Solution
+
+set_option backward.privateInPublic true
+set_option backward.privateInPublic.warn false
 
 /-!
 # Axiom audit of the comparator theorems

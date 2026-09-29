@@ -1,6 +1,11 @@
+module
+
 import Mathlib
-import ThesisLean.Exec
-import ThesisLean.ExecBridge
+import all ThesisLean.Exec
+import all ThesisLean.ExecBridge
+
+set_option backward.privateInPublic true
+set_option backward.privateInPublic.warn false
 
 open ExecBridge
 

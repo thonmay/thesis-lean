@@ -1,9 +1,14 @@
+module
+
 import Mathlib
-import ThesisLean.Exec
-import ThesisLean.McsInvariant
-import ThesisLean.CardBridge
-import ThesisLean.Formal_gen001c01_3939115c
-import ThesisLean.BridgePartsA
+import all ThesisLean.Exec
+import all ThesisLean.McsInvariant
+import all ThesisLean.CardBridge
+import all ThesisLean.Formal_gen001c01_3939115c
+import all ThesisLean.BridgePartsA
+
+set_option backward.privateInPublic true
+set_option backward.privateInPublic.warn false
 
 /-!
 # Bridge parts C: per-prefix legality of the executable MCS ordering

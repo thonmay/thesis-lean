@@ -1,6 +1,11 @@
+module
+
 import Mathlib
-import ThesisLean.Exec
-import ThesisLean.Formal_gen001c01_3939115c
+import all ThesisLean.Exec
+import all ThesisLean.Formal_gen001c01_3939115c
+
+set_option backward.privateInPublic true
+set_option backward.privateInPublic.warn false
 
 /-!
 # Executable `bestPick` selection helper

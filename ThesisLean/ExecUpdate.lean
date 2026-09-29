@@ -1,6 +1,11 @@
+module
+
 import Mathlib
-import ThesisLean.Correctness
-import ThesisLean.McsInvariant
+import all ThesisLean.Correctness
+import all ThesisLean.McsInvariant
+
+set_option backward.privateInPublic true
+set_option backward.privateInPublic.warn false
 
 /-!
 # The executable dynamic updates refine the abstract ones

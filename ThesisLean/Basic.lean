@@ -1,4 +1,9 @@
+module
+
 import Mathlib
+
+set_option backward.privateInPublic true
+set_option backward.privateInPublic.warn false
 
 /-!
 # ThesisLean

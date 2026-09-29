@@ -1,5 +1,10 @@
+module
+
 import Mathlib
-import ThesisLean.ExecUpdate
+import all ThesisLean.ExecUpdate
+
+set_option backward.privateInPublic true
+set_option backward.privateInPublic.warn false
 
 /-!
 # Stability of MCS orderings under one-sided edge updates

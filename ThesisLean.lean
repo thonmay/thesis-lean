@@ -1,21 +1,26 @@
-import ThesisLean.Basic
-import ThesisLean.ChallengeDefs
-import ThesisLean.SolutionBridge
-import ThesisLean.Correctness
-import ThesisLean.ExecUpdate
-import ThesisLean.Stability
-import ThesisLean.Formal_gen001c01_3939115c
-import ThesisLean.Formal_gen003c01_eea71821
-import ThesisLean.Exec
-import ThesisLean.ExecBridge
-import ThesisLean.BridgeSteps
-import ThesisLean.CardBridge
-import ThesisLean.McsInvariant
-import ThesisLean.BridgePartsA
-import ThesisLean.BridgePartsB
-import ThesisLean.BridgePartsC
-import ThesisLean.BridgeAssembly
-import ThesisLean.ExecFlip
+module
+
+import all ThesisLean.Basic
+import all ThesisLean.ChallengeDefs
+import all ThesisLean.SolutionBridge
+import all ThesisLean.Correctness
+import all ThesisLean.ExecUpdate
+import all ThesisLean.Stability
+import all ThesisLean.Formal_gen001c01_3939115c
+import all ThesisLean.Formal_gen003c01_eea71821
+import all ThesisLean.Exec
+import all ThesisLean.ExecBridge
+import all ThesisLean.BridgeSteps
+import all ThesisLean.CardBridge
+import all ThesisLean.McsInvariant
+import all ThesisLean.BridgePartsA
+import all ThesisLean.BridgePartsB
+import all ThesisLean.BridgePartsC
+import all ThesisLean.BridgeAssembly
+import all ThesisLean.ExecFlip
+
+set_option backward.privateInPublic true
+set_option backward.privateInPublic.warn false
 -- All modules above are the Palomar submission artifact. They are imported
 -- here so CI (lean-action) builds all of them and the leanchecker step can
 -- re-verify every module (the glob in lean_action_ci.yml picks up each
