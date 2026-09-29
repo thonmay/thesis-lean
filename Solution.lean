@@ -1,18 +1,18 @@
 module
 
-import Mathlib
-import all ThesisLean.Formal_gen001c01_3939115c
-import all ThesisLean.Formal_gen003c01_eea71821
-import all ThesisLean.Exec
-import all ThesisLean.ExecFlip
-import all ThesisLean.BridgeAssembly
-import all ThesisLean.SolutionBridge
-import all ThesisLean.Correctness
-import all ThesisLean.ExecUpdate
-import all ThesisLean.Stability
+public import Mathlib
+public import ThesisLean.Formal_gen001c01_3939115c
+public import ThesisLean.Formal_gen003c01_eea71821
+public import ThesisLean.Exec
+public import ThesisLean.ExecFlip
+public import ThesisLean.BridgeAssembly
+public import ThesisLean.SolutionBridge
+public import ThesisLean.Correctness
+public import ThesisLean.ExecUpdate
+public import ThesisLean.Stability
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # Solution: proved headline theorems for Dynamic MCS ordering maintenance

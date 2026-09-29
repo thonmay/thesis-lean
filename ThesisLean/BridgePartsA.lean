@@ -1,12 +1,12 @@
 module
 
-import Mathlib
-import all ThesisLean.Exec
-import all ThesisLean.McsInvariant
-import all ThesisLean.Formal_gen001c01_3939115c
+public import Mathlib
+public import ThesisLean.Exec
+public import ThesisLean.McsInvariant
+public import ThesisLean.Formal_gen001c01_3939115c
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # Bridge parts A: mechanical shape of the executable ordering

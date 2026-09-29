@@ -1,10 +1,10 @@
 module
 
-import Mathlib
-import all ThesisLean.Exec
+public import Mathlib
+public import ThesisLean.Exec
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # CardEqNeigh

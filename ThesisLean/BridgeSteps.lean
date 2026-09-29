@@ -1,11 +1,11 @@
 module
 
-import Mathlib
-import all ThesisLean.Exec
-import all ThesisLean.ExecBridge
+public import Mathlib
+public import ThesisLean.Exec
+public import ThesisLean.ExecBridge
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 open ExecBridge
 

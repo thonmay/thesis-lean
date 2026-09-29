@@ -1,10 +1,10 @@
 module
 
-import Mathlib
-import all ThesisLean.Formal_gen001c01_3939115c
+public import Mathlib
+public import ThesisLean.Formal_gen001c01_3939115c
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # Executable dynamic MCS ordering

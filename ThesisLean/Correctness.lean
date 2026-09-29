@@ -1,10 +1,10 @@
 module
 
-import Mathlib
-import all ThesisLean.SolutionBridge
+public import Mathlib
+public import ThesisLean.SolutionBridge
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # Correctness and locality of the dynamic updates (on the `Challenge` definitions)

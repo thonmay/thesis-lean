@@ -1,12 +1,12 @@
 module
 
-import Mathlib
-import all ThesisLean.Exec
-import all ThesisLean.BridgeAssembly
-import all ThesisLean.Formal_gen001c01_3939115c
+public import Mathlib
+public import ThesisLean.Exec
+public import ThesisLean.BridgeAssembly
+public import ThesisLean.Formal_gen001c01_3939115c
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # Executable per-flip correctness

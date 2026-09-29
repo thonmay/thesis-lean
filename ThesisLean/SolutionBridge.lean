@@ -1,15 +1,15 @@
 module
 
-import Mathlib
-import all ThesisLean.ChallengeDefs
-import all ThesisLean.Formal_gen001c01_3939115c
-import all ThesisLean.Formal_gen003c01_eea71821
-import all ThesisLean.Exec
-import all ThesisLean.ExecFlip
-import all ThesisLean.BridgeAssembly
+public import Mathlib
+public import ThesisLean.ChallengeDefs
+public import ThesisLean.Formal_gen001c01_3939115c
+public import ThesisLean.Formal_gen003c01_eea71821
+public import ThesisLean.Exec
+public import ThesisLean.ExecFlip
+public import ThesisLean.BridgeAssembly
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # SolutionBridge: transport from the `Challenge` definitions to the project

@@ -1,18 +1,18 @@
 module
 
-import Mathlib
-import all ThesisLean.Exec
-import all ThesisLean.ExecBridge
-import all ThesisLean.BridgeSteps
-import all ThesisLean.CardBridge
-import all ThesisLean.McsInvariant
-import all ThesisLean.BridgePartsA
-import all ThesisLean.BridgePartsB
-import all ThesisLean.BridgePartsC
-import all ThesisLean.Formal_gen001c01_3939115c
+public import Mathlib
+public import ThesisLean.Exec
+public import ThesisLean.ExecBridge
+public import ThesisLean.BridgeSteps
+public import ThesisLean.CardBridge
+public import ThesisLean.McsInvariant
+public import ThesisLean.BridgePartsA
+public import ThesisLean.BridgePartsB
+public import ThesisLean.BridgePartsC
+public import ThesisLean.Formal_gen001c01_3939115c
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # Bridge assembly: wiring the three slices into the final bridge theorem

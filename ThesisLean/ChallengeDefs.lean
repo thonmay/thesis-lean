@@ -1,9 +1,9 @@
 module
 
-import Mathlib
+public import Mathlib
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # Challenge definitions (verbatim source for `Challenge.lean`)

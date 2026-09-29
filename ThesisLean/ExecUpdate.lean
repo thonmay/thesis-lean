@@ -1,11 +1,11 @@
 module
 
-import Mathlib
-import all ThesisLean.Correctness
-import all ThesisLean.McsInvariant
+public import Mathlib
+public import ThesisLean.Correctness
+public import ThesisLean.McsInvariant
 
-set_option backward.privateInPublic true
-set_option backward.privateInPublic.warn false
+set_option backward.proofsInPublic true
+@[expose] public section
 
 /-!
 # The executable dynamic updates refine the abstract ones
