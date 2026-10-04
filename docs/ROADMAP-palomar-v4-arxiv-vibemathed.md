@@ -12,7 +12,7 @@ Fix every item of the 2026-09-23 Palomar automated review by changing the Lean r
 - Resubmission: https://submit.palomar-registry.org/, as a **new submission with the Palomar ID blank** (this is v4).
 - Scope: Lean repairs + locality headlines + operational cost + **stability boundary**.
 - Cost model: **unit-cost query model** (count legality checks and pick steps along the real executable control flow).
-- Authorship: **you + supervisor**; the supervisor is also the independent reviewer.
+- Authorship: **you + supervisor** (co-authors). The supervisor is **not** an independent reviewer (too involved in the research); the review status is author-verified and no independent third-party review has occurred.
 - No prior stability work or harness exists in `thesis-lean` or `ai-dynamic-graph-algorithms`. It is built here.
 - Rule for every reviewer either/or: **fix the Lean; never resolve an item by disclosure alone.**
 - **Supervisor sign-off (2026-09-23):** P0, P1 and P2 approved as planned.

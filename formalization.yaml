@@ -291,10 +291,9 @@ review:
     Classical.choice. The two authors (Md Thoriqul Islam Thonmay and Gregory
     Morse) are co-authors; the review status is author-verified and no
     independent third-party review has occurred. As a co-author, Gregory Morse
-    wrote the prior review (verdict.txt) that drove these repairs and has
-    re-reviewed this commit as co-author; the machine-checked build, the
-    leanchecker external kernel check, and the axiom audit above are the
-    current verification.
+    wrote the prior review (verdict.txt) that drove these repairs; the
+    machine-checked build, the leanchecker external kernel check, and the axiom
+    audit above are the current verification.
 
 alignment:
   namespace: "Challenge"
