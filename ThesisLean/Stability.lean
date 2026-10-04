@@ -120,6 +120,68 @@ theorem exists_common_ordering (G G' : UGraph n)
       subst hxy
       exact hwP hx
 
+/-- Online form of the common-ordering theorem: any common MCS prefix — a
+duplicate-free list `P` whose every step is a legal MCS step in *both* graphs —
+extends to a full common MCS ordering of both graphs.  This is the constructive
+content of `exists_common_ordering`: a maintainer that, at each step, picks any
+vertex that is maximum in both graphs can extend its prefix forever, with no
+lookahead and no backtracking. -/
+theorem common_order_extends_prefix (G G' : UGraph n)
+    (hlo : ∀ (S : Finset (Vert n)) (x : Vert n), G.neigh S x ≤ G'.neigh S x)
+    (hhi : ∀ (S : Finset (Vert n)) (x : Vert n), G'.neigh S x ≤ G.neigh S x + 1)
+    (P : List (Vert n)) (hnd : P.Nodup)
+    (hsteps : ∀ i (hi : i < P.length),
+      IsMCSNextAny G (P.take i).toFinset (P.get ⟨i, hi⟩) ∧
+      IsMCSNextAny G' (P.take i).toFinset (P.get ⟨i, hi⟩)) :
+    ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord ∧ P <+: ord := by
+  -- Strong induction on the number of vertices still to place, `n - P.length`.
+  suffices h : ∀ m, ∀ P : List (Vert n), n - P.length = m → P.Nodup →
+      (∀ i (hi : i < P.length),
+        IsMCSNextAny G (P.take i).toFinset (P.get ⟨i, hi⟩) ∧
+        IsMCSNextAny G' (P.take i).toFinset (P.get ⟨i, hi⟩)) →
+      ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord ∧ P <+: ord by
+    exact h (n - P.length) P rfl hnd hsteps
+  intro m
+  induction m using Nat.strong_induction_on with
+  | h m ih =>
+    intro P hm hnd hsteps
+    by_cases hfull : P.length = n
+    · exact ⟨P, ⟨hnd, hfull, fun i hi => (hsteps i hi).1⟩,
+                  ⟨hnd, hfull, fun i hi => (hsteps i hi).2⟩, List.prefix_refl P⟩
+    · have hPle : P.length ≤ n := by
+        rw [← List.toFinset_card_of_nodup hnd]
+        simpa using Finset.card_le_univ (P.toFinset : Finset (Vert n))
+      have hlt : P.length < n := lt_of_le_of_ne hPle hfull
+      have hne : P.toFinset ≠ (Finset.univ : Finset (Vert n)) := by
+        intro h
+        have hc : P.toFinset.card = n := by rw [h, Finset.card_univ, Fintype.card_fin]
+        rw [List.toFinset_card_of_nodup hnd] at hc
+        omega
+      obtain ⟨w, hwG, hwG'⟩ :=
+        exists_common_pick G G' P.toFinset (fun x => hlo P.toFinset x)
+          (fun x => hhi P.toFinset x) hne
+      have hwP : w ∉ P :=
+        fun hmem => (Finset.mem_sdiff.1 hwG.1).2 (List.mem_toFinset.2 hmem)
+      have hnd' : (P ++ [w]).Nodup := by
+        rw [List.nodup_append]
+        exact ⟨hnd, List.nodup_singleton w, fun x hx y hy => by
+          rw [List.mem_singleton] at hy
+          subst hy
+          intro hxy
+          subst hxy
+          exact hwP hx⟩
+      have hsteps' : ∀ i (hi : i < (P ++ [w]).length),
+          IsMCSNextAny G ((P ++ [w]).take i).toFinset ((P ++ [w]).get ⟨i, hi⟩) ∧
+          IsMCSNextAny G' ((P ++ [w]).take i).toFinset ((P ++ [w]).get ⟨i, hi⟩) :=
+        fun i hi => steps_append (Q := fun S x =>
+          IsMCSNextAny G S x ∧ IsMCSNextAny G' S x) P w hsteps ⟨hwG, hwG'⟩ i hi
+      have hltm : n - (P ++ [w]).length < m := by
+        have hlen_app : (P ++ [w]).length = P.length + 1 := List.length_append ..
+        omega
+      obtain ⟨ord, hordG, hordG', hpref⟩ :=
+        ih (n - (P ++ [w]).length) hltm (P ++ [w]) rfl hnd' hsteps'
+      exact ⟨ord, hordG, hordG', (List.prefix_append P [w]).trans hpref⟩
+
 /-- Inserting a matching leaves a common MCS ordering. -/
 theorem insert_matching_common_order {G F G' : UGraph n} (hadd : AddsEdges G F G')
     (hF : IsMatching F) : ∃ ord, IsMCSOrderingAny G ord ∧ IsMCSOrderingAny G' ord :=

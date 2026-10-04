@@ -2,3 +2,5 @@
 /.beam
 /SUBMISSION_URLS.md
 /verdict.txt
+/__pycache__/
+/scripts/__pycache__/

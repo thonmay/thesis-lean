@@ -32,6 +32,7 @@
     "Challenge.exec_insert_update_c_fst",
     "Challenge.exec_delete_update_c_fst",
     "Challenge.exists_common_ordering",
+    "Challenge.common_order_extends_prefix",
     "Challenge.insert_matching_common_order",
     "Challenge.delete_matching_common_order",
     "Challenge.flip_common_order",

@@ -46,26 +46,42 @@ The formalization proves, for every graph size `n`:
   (`execInsertUpdate` / `execDeleteUpdate`) is proved to refine the abstract
   update.
 - **Unit cost.** Instrumented versions count legality checks and pick steps
-  along the real control flow: at most `n` for an insertion and `n + 1` for a
-  deletion. The worst case therefore **matches static recomputation** — no
-  asymptotic separation over recomputing from scratch is claimed.
+  along the real control flow. The sharp statements are the no-break cases: a
+  deletion whose probe finds no break costs **exactly 1** unit
+  (`exec_delete_cost_of_no_break`), and an insertion whose probe finds no break
+  costs at most the **window size** (`exec_insert_cost_of_no_break`). The worst
+  case is at most `n` for an insertion and `n + 1` for a deletion, which
+  **matches static recomputation** — no asymptotic separation over recomputing
+  from scratch is claimed. One cost unit is a single legality check or pick
+  step, and each such unit is itself superconstant work in this naive
+  implementation (`pickAt` filters the chosen list per candidate), so the model
+  compares the update against from-scratch recomputation *within the same
+  model* and says nothing about wall-clock parity with the linear-time static
+  algorithm of Tarjan–Yannakakis.
 - **Stability boundary.** If the neighbour count of every vertex in one graph
   exceeds that in the other by at most one along every chosen prefix, the two
   graphs share an MCS ordering. In particular, inserting or deleting a
   *matching*, or flipping a single edge, always preserves a common MCS
-  ordering. Neither part of the hypothesis can simply be dropped: inserting a
-  triangle (`n = 5`) or a `P_4` (`n = 6`) shows the `+1` bound cannot be
-  relaxed to `+2`, and a mixed matching update (one insert + one delete,
-  `n = 4`) shows the one-directional (insert-only or delete-only) condition is
-  needed — each destroys every common ordering, certified by kernel `decide`
-  on explicit small instances. The hypothesis is
-  sufficient, not necessary: a violation need not break a common ordering (for
-  example, inserting a 2-edge path inflates one vertex by two yet leaves a
-  common ordering on every host graph up to `n = 6`).
+  ordering. The connection to the algorithm is the **online** form: any common
+  MCS prefix extends to a full common ordering
+  (`common_order_extends_prefix`) — a maintainer that picks a common-maximum
+  vertex at each step never needs to look ahead or backtrack. Neither part of
+  the hypothesis can simply be dropped: inserting a triangle (`n = 5`) or a
+  `P_4` (`n = 6`) shows the `+1` bound cannot be relaxed to `+2`, and a mixed
+  matching update (one insert + one delete, `n = 4`) shows the one-directional
+  (insert-only or delete-only) condition is needed — each destroys every common
+  ordering, certified by kernel `decide` on explicit small instances. The
+  triangle and the `P_4` are kept as separate witnesses because they show the
+  same inflation phenomenon on structurally different insertions: the triangle
+  is a clique, while the `P_4` is triangle-free, so the obstruction is not a
+  consequence of clique structure. The hypothesis is sufficient, not necessary:
+  a violation need not break a common ordering (for example, inserting a 2-edge
+  path inflates one vertex by two yet leaves a common ordering on every host
+  graph up to `n = 6`).
 
 ## Theorem map
 
-The Palomar comparator contract is the 36-name list in
+The Palomar comparator contract is the 37-name list in
 [`comparator.json`](comparator.json). Each name is a real theorem in
 [`Solution.lean`](Solution.lean) with a matching `sorry` statement in
 [`Challenge.lean`](Challenge.lean). Both files are generated from a single
@@ -80,10 +96,10 @@ so the posed and proved types stay textually identical.
 | Executable refinement | `exec_insert_update_eq`, `exec_delete_update_eq` |
 | Unit cost | `exec_insert_cost_le`, `exec_delete_cost_le`, `exec_insert_cost_of_no_break`, `exec_delete_cost_of_no_break`, `exec_insert_cost_of_break`, `exec_delete_cost_of_break`, `exec_insert_update_c_fst`, `exec_delete_update_c_fst` |
 | Executable bridge | `setEdge_preserves_symm`, `setEdge_preserves_loopless`, `mcsOrder_eq_greedySuffix`, `exec_insert_recompute_valid`, `exec_delete_recompute_valid` |
-| Stability | `exists_common_ordering`, `insert_matching_common_order`, `delete_matching_common_order`, `flip_common_order` |
+| Stability | `exists_common_ordering`, `common_order_extends_prefix`, `insert_matching_common_order`, `delete_matching_common_order`, `flip_common_order` |
 | Stability obstructions | `triangle_no_common_order`, `p4_no_common_order`, `mixed_matching_no_common_order` |
 
-All 36 theorems audit to only the three standard Lean axioms:
+All 37 theorems audit to only the three standard Lean axioms:
 `propext`, `Quot.sound`, `Classical.choice` (no `sorry`, no `native_decide`).
 
 ## Repository layout

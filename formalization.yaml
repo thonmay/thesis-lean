@@ -59,6 +59,7 @@ sources:
       are proved here in Lean 4 / Mathlib.
     authors:
       - "Md Thoriqul Islam Thonmay"
+      - "Gregory Morse"
   - title: >-
       Algorithmic Aspects of Vertex Elimination on Graphs
     relationship: background
@@ -158,13 +159,19 @@ status:
     mcsOrder_eq_greedySuffix, with exec_insert_recompute_valid / exec_delete_recompute_valid. A
     stability-boundary result is proved: exists_common_ordering (neighbour
     counts differ by at most one along every prefix implies a common MCS
-    ordering), with corollaries insert_matching_common_order,
+    ordering), its constructive online form common_order_extends_prefix (any
+    common MCS prefix extends to a full common ordering, so a maintainer that
+    picks a common-maximum vertex at each step never backtracks), with
+    corollaries insert_matching_common_order,
     delete_matching_common_order and flip_common_order; and the matching
     obstructions are certified by kernel decide (triangle_no_common_order,
     p4_no_common_order, mixed_matching_no_common_order), showing that the +1
     bound cannot be relaxed to +2 and that the one-directional (insert-only or
     delete-only) condition cannot be dropped; the hypothesis is sufficient but
-    not necessary. All headline theorems in
+    not necessary. The sharpest cost statements are the no-break cases:
+    exec_delete_cost_of_no_break (a no-break deletion costs exactly 1 unit) and
+    exec_insert_cost_of_no_break (a no-break insertion costs at most the window
+    size). All headline theorems in
     Solution.lean are proved with no sorry; Challenge.lean restates them with
     deliberate sorry bodies for the comparator.
   sorry_count: 0
@@ -206,9 +213,7 @@ automation:
         (common-ordering theorem, matching and single-flip corollaries,
         certified counterexample search), and the CI definitions-sync and
         axiom-audit checks. Several of these drafts did not yet compile; their
-        proof bodies were repaired in the phase below. Review: independent
-        review passes of the subsequent commits (statement semantics, metadata
-        claims, Palomar preflight diagnosis).
+        proof bodies were repaired in the phase below. Review: separate review passes of the subsequent commits (statement semantics, metadata claims, Palomar preflight diagnosis).
       cost:
         wall_time: "several hours across planning, drafting and review sessions"
         spend_usd: "not tracked"
@@ -257,10 +262,15 @@ fidelity:
     unit, measured by instrumented functions (execInsertUpdateC /
     execDeleteUpdateC) whose first projection equals the plain update; this is
     an operational count along the real executable control flow, not a
-    bit-level or word-RAM running time. The deletion probe performs exactly one
-    legality check (exec_delete_cost_of_no_break proves the cost is 1 when no
-    regreedy is needed). The regreedy step (greedySuffix) is noncomputable
-    (Classical.choice) in the abstract model; the executable layer
+    bit-level or word-RAM running time. Concretely, one unit is a legality
+    check or a pick step, and each such unit is itself superconstant work in
+    this naive implementation (pickAt filters the whole chosen list per
+    candidate), so the model compares this update against from-scratch
+    recomputation within the same model and says nothing about wall-clock
+    parity with the linear-time static algorithm. The deletion probe performs
+    exactly one legality check (exec_delete_cost_of_no_break proves the cost is
+    1 when no regreedy is needed). The regreedy step (greedySuffix) is
+    noncomputable (Classical.choice) in the abstract model; the executable layer
     (regreedy via bestPick) is computable and its refinement to the
     abstract regreedy is proved (regreedy_eq_greedySuffix), so the cost count
     tracks the computable implementation.
@@ -277,13 +287,14 @@ review:
     (scripts/gen_comparator_wrappers.py). Each proof builds under lake build
     with the leanchecker external kernel checker passing and no sorry / axiom /
     admit / unsafe / native_decide in the Solution module; the AxiomAudit
-    confirms all 36 comparator theorems depend only on propext, Quot.sound and
-    Classical.choice. The supervisor (Gregory Morse) is the independent
-    reviewer and co-author: he authored the review of the previous submission
-    (verdict.txt) that drove these repairs, and confirmed the worst-case cost
-    equals static recomputation (no asymptotic separation is claimed). This
-    commit has not yet been re-reviewed by him; the machine-checked build,
-    leanchecker and axiom audit above are the current verification.
+    confirms all 37 comparator theorems depend only on propext, Quot.sound and
+    Classical.choice. The two authors (Md Thoriqul Islam Thonmay and Gregory
+    Morse) are co-authors; the review status is author-verified and no
+    independent third-party review has occurred. As a co-author, Gregory Morse
+    wrote the prior review (verdict.txt) that drove these repairs and has
+    re-reviewed this commit as co-author; the machine-checked build, the
+    leanchecker external kernel check, and the axiom audit above are the
+    current verification.
 
 alignment:
   namespace: "Challenge"
@@ -433,6 +444,11 @@ alignment:
       module: "Solution"
       status: "proved"
       note: "Stability: if G' neighbour counts exceed G's by at most one along every chosen set, the two graphs share an MCS ordering."
+    - source: "Online stability: any common MCS prefix extends to a full common MCS ordering of both graphs."
+      lean: "Challenge.common_order_extends_prefix"
+      module: "Solution"
+      status: "proved"
+      note: "Constructive online form of the common-ordering theorem: a maintainer picking a common-maximum vertex at each step extends its prefix to a full common ordering with no lookahead or backtracking."
     - source: "Stability: inserting a matching leaves a common MCS ordering."
       lean: "Challenge.insert_matching_common_order"
       module: "Solution"

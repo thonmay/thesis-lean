@@ -85,6 +85,14 @@ THEOREMS = [
       (∀ (S : Finset (Vert n)) (x : Vert n), G.neigh S x ≤ G'.neigh S x) →
         (∀ (S : Finset (Vert n)) (x : Vert n), G'.neigh S x ≤ G.neigh S x + 1) →
           ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord"""),
+    ("common_order_extends_prefix", """∀ {n : ℕ} (G G' : UGraph n),
+      (∀ (S : Finset (Vert n)) (x : Vert n), G.neigh S x ≤ G'.neigh S x) →
+        (∀ (S : Finset (Vert n)) (x : Vert n), G'.neigh S x ≤ G.neigh S x + 1) →
+          ∀ (P : List (Vert n)), P.Nodup →
+            (∀ (i : ℕ) (hi : i < P.length),
+              G.IsMCSNextAny (P.take i).toFinset (P.get ⟨i, hi⟩) ∧
+              G'.IsMCSNextAny (P.take i).toFinset (P.get ⟨i, hi⟩)) →
+            ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord ∧ P <+: ord"""),
     ("insert_matching_common_order", """∀ {n : ℕ} {G F G' : UGraph n},
       G.AddsEdges F G' → F.IsMatching → ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord"""),
     ("delete_matching_common_order", """∀ {n : ℕ} {G F G' : UGraph n},
@@ -121,6 +129,7 @@ DOCS = {
     "exec_insert_update_c_fst": "Cost link: the counted insertion update returns the same ordering as the plain executable insertion update.",
     "exec_delete_update_c_fst": "Cost link: the counted deletion update returns the same ordering as the plain executable deletion update.",
     "exists_common_ordering": "Stability: if G' neighbour counts exceed G's by at most one along every chosen set, the two graphs share an MCS ordering.",
+    "common_order_extends_prefix": "Online stability: any common MCS prefix extends to a full common MCS ordering of both graphs; a maintainer picking a common-maximum vertex at each step never needs to backtrack.",
     "insert_matching_common_order": "Stability: inserting a matching leaves a common MCS ordering.",
     "delete_matching_common_order": "Stability: deleting a matching leaves a common MCS ordering.",
     "flip_common_order": "Stability: flipping a single edge leaves a common MCS ordering.",

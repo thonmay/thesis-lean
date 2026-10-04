@@ -25,7 +25,7 @@ Fix every item of the 2026-09-23 Palomar automated review by changing the Lean r
 ### 1a. Verdict.md's Lean criticisms: all confirmed
 | Defect | Location |
 |---|---|
-| Complexity proofs are `omega` over size bounds | `ThesisLean/ComplexityHeadlines.lean:99-168` |
+| Complexity proofs are `omega` over size bounds | the pre-v4 cost module `ComplexityHeadlines.lean` (since deleted; replaced by the operational unit-cost model in `ThesisLean/ExecUpdate.lean`) |
 | `exec_insert_valid`/`exec_delete_valid` certify recomputation; no executable dynamic update | `Challenge.lean:484-512`, `ThesisLean/ExecFlip.lean:315-365` |
 | `greedyPick` = `Classical.choose`, though `exists_IsMCSNext` builds the witness | `Challenge.lean:86-135` |
 | `deleteCost` charges a suffix scan; `deleteUpdate` does one check | `Challenge.lean:309-314` vs `243-247` |
@@ -156,12 +156,23 @@ The verdict's G={01,02}, F={03,13} is not a counterexample (`0,2,1,3,4` is valid
    - B is the guaranteed floor; A is the stretch goal.
 
 ### P3: Palomar v4 resubmission
-1. `Challenge.lean` restates every new definition (Mathlib-only). Theorem statements get `sorry`. `Solution.lean` proves them through the SolutionBridge transport. `comparator.json` gets the new list, about 22 names:
-   - correctness: `init_valid`, `insert_update_valid`, `delete_update_valid`, `update_from_prefix`, `greedySuffix_full`
-   - locality: 7
-   - exec: 2 refinement + 3 recompute
-   - cost: 5
-   - stability: core + 4 corollaries + 3 counterexamples
+
+> **Post-implementation note (2026-10).** This section is the original plan; the
+> delivered artifact differs in three ways, recorded here so the doc is not
+> misleading. (i) The comparator has **37** names, not "about 22" (the plan's
+> sub-counts were an early estimate). (ii) The planned module names were
+> superseded: locality lives in `ThesisLean/Correctness.lean` (not
+> `Locality.lean`), and the unit-cost model in `ThesisLean/ExecUpdate.lean` (not
+> `ExecCost.lean`). (iii) `docs/stability-data.md` and `docs/audit-log.md` were
+> not created as separate files; the stability data lives in
+> `scripts/mcs_stability.py` and its output is quoted in `docs/LITERATURE.md`.
+> The one theorem added beyond the plan is the online stability corollary
+> `common_order_extends_prefix`.
+
+1. `Challenge.lean` restates every new definition (Mathlib-only). Theorem statements get `sorry`. `Solution.lean` proves them through the SolutionBridge transport. `comparator.json` gets the delivered list of 37 names (the original estimate below was superseded):
+   - correctness: 5; uniqueness / update = recompute: 3; locality: 6
+   - executable refinement: 2; executable bridge: 5; unit cost: 8
+   - stability: 5 (including the online corollary `common_order_extends_prefix`); obstructions: 3
 2. `formalization.yaml`:
    - authors: you + supervisor
    - description/scope rewritten (locality + stability + verified executable; worst case = static recomputation)
