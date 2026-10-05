@@ -36,14 +36,23 @@ incomparable on general graphs *and* on chordal graphs. Witness (chordal,
 7 vertices): a 5-clique on {1,2,3,4,5}, plus a vertex `u` joined to `1`, plus a
 vertex `v` joined to `2` and `3`. Brute-force enumeration of both ordering
 families (all tie-breaks) gives 204 orderings each, with a symmetric difference
-of 40 orderings on each side:
+of 40 orderings on each side. A discriminating pair (vertices numbered so that
+the clique is `1..5`, `u=6`, `v=7`):
 
-- LexBFS-only: `1,2,3,4,5,u,v` (and 39 others),
-- MCS-only: `1,2,3,4,5,v,u` (and 39 others).
+- LexBFS-only: `2,3,1,4,5,6,7` (and 39 others),
+- MCS-only: `2,3,1,4,5,7,6` (and 39 others).
+
+(A previous revision named `1,2,3,4,5,6,7` / `1,2,3,4,5,7,6`; that pair is
+wrong — the first lies in neither family and the second in both. The aggregate
+204/204/40 count was and remains correct.)
 
 This is consistent with Corneil-Krueger (2008): MCS and LexBFS are both
 restrictions of maximal neighborhood search, and their ordering families are
 neither nested nor disjoint.
+
+Reproduce with [`scripts/incomparability_witness.py`](../scripts/incomparability_witness.py);
+it enumerates both families over all tie-breaks and asserts the 204/204/40
+counts (non-zero exit on mismatch).
 
 ## 2. Dynamic / locality result (NOT FOUND)
 

@@ -9,6 +9,12 @@ result with certified counterexamples.
 **Authors:** Md Thoriqul Islam Thonmay, Gregory Morse (ELTE).
 **License:** Apache-2.0.
 
+**Registered formalization:** Palomar Registry entry
+[`PALOMAR-2026-10-04-000009`](https://palomar-registry.org/entry.html?id=PALOMAR-2026-10-04-000009&version=1)
+(version 1, status `registered`; machine-readable record:
+[`PALOMAR-2026-10-04-000009-v1.json`](https://data.palomar-registry.org/entries/PALOMAR-2026-10-04-000009-v1.json)).
+The registered source is commit `a872fdd`.
+
 ---
 
 ## What is MCS?
@@ -124,7 +130,19 @@ scripts/
   check_axioms.sh          Axiom audit for all comparator theorems
   gen_comparator_wrappers.py  Single-source generator for comparator blocks
   mcs_stability.py         Exhaustive stability harness (cross-check for counterexamples)
+  mcs_highn_crosscheck.py  High-n cross-check of the adopted candidate vs from-scratch MCS
+  incomparability_witness.py  MCS/LexBFS ordering-family incomparability (204/204/40)
+  candidates/gen003_c02.py    The adopted dynamic-MCS candidate the cross-check runs
 ```
+
+The two empirical scripts backing the paper's claims are:
+`mcs_stability.py` (exhaustive small-`n` enumeration of the certified
+obstructions) and `incomparability_witness.py` (the 204/204/40 MCS-vs-LexBFS
+witness). `mcs_highn_crosscheck.py` additionally runs the adopted Python
+candidate on random graphs up to `n = 200` and checks that, after every edge
+flip, its ordering is a legal MCS ordering and equals a from-scratch
+recomputation — empirically closing the gap between the Lean *encoding* and the
+Python candidate.
 
 ## Build and verify
 
@@ -148,6 +166,14 @@ harness that exhaustively enumerates all MCS orderings on small instances:
 python3 scripts/mcs_stability.py --n 5 --pattern K3  --mode ins
 python3 scripts/mcs_stability.py --n 6 --pattern P4  --mode ins
 python3 scripts/mcs_stability.py --n 4 --pattern 2K2 --mode mixed
+```
+
+The MCS/LexBFS ordering-family incomparability (204/204/40) and the high-`n`
+candidate cross-check are reproduced by:
+
+```bash
+python3 scripts/incomparability_witness.py                 # asserts 204/204/40
+python3 scripts/mcs_highn_crosscheck.py --nmax 200         # candidate vs from-scratch MCS
 ```
 
 ## Provenance
