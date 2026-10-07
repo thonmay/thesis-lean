@@ -19,11 +19,15 @@ project:
     abstract update, and per-update cost in a unit-cost query model (counting
     legality checks and pick steps along the real executable control flow): at
     most n units for an insertion and n + 1 for a deletion, so the worst case
-    matches static recomputation. A stability-boundary result is also proved:
-    if the neighbour count of every vertex in one graph exceeds that in the
-    other by at most one along every chosen prefix, the two graphs admit a
-    common MCS ordering; in particular inserting or deleting a matching, or
-    flipping a single edge, always preserves a common MCS ordering.
+    matches static recomputation. A stability theorem is also proved: if the
+    neighbour count of every vertex in one graph exceeds that in the other by at
+    most one along every *proper common MCS prefix* (the sets the constructive
+    proof actually visits -- a hypothesis strictly weaker than the every-subset
+    bound), the two graphs admit a common MCS ordering; in particular inserting
+    or deleting a matching, or flipping a single edge, always preserves a
+    common MCS ordering. This strengthening (exists_common_ordering_prefix)
+    makes the matching result a genuine corollary; the every-subset version
+    exists_common_ordering is retained as a special case.
   authors:
     - "Md Thoriqul Islam Thonmay"
     - "Gregory Morse"
@@ -157,18 +161,28 @@ status:
     recomputation. The executable recomputation is connected to the abstract
     graph by setEdge_preserves_symm / setEdge_preserves_loopless and
     mcsOrder_eq_greedySuffix, with exec_insert_recompute_valid / exec_delete_recompute_valid. A
-    stability-boundary result is proved: exists_common_ordering (neighbour
-    counts differ by at most one along every prefix implies a common MCS
-    ordering), its constructive online form common_order_extends_prefix (any
+    stability-boundary result is proved: exists_common_ordering_prefix (the
+    neighbour counts differ by at most one along every proper common MCS prefix
+    implies a common MCS ordering -- strictly more general than the every-subset
+    exists_common_ordering, which is retained as a special case), its
+    constructive online form common_order_extends_prefix (any
     common MCS prefix extends to a full common ordering, so a maintainer that
     picks a common-maximum vertex at each step never backtracks), with
     corollaries insert_matching_common_order,
-    delete_matching_common_order and flip_common_order; and the matching
-    obstructions are certified by kernel decide (triangle_no_common_order,
-    p4_no_common_order, mixed_matching_no_common_order), showing that the +1
-    bound cannot be relaxed to +2 and that the one-directional (insert-only or
-    delete-only) condition cannot be dropped; the hypothesis is sufficient but
-    not necessary. The sharpest cost statements are the no-break cases:
+    delete_matching_common_order and flip_common_order; and the obstructions are
+    certified by kernel decide (triangle_no_common_order,
+    p4_no_common_order, two_p3_no_common_order, mixed_matching_no_common_order),
+    showing that the +1 bound cannot be relaxed to +2 and that the
+    one-directional (insert-only or delete-only) condition cannot be dropped in
+    general (for disjoint mixed pairs); the hypothesis is sufficient but
+    not necessary. Two probe sharpenings are proved rather than merely observed:
+    no_break_at_laterPos (an insertion never breaks at the later endpoint's own
+    position, so the probe window is the open interval (earlierPos, laterPos))
+    and insert_break_iff_old (strictly inside the open window the break criterion
+    is decidable from the old-graph counts). The step-function structure behind
+    sublinear probing is machine-checked (neigh_take_image_card_le,
+    neigh_take_sub_eq_count). The sharpest cost statements are the no-break
+    cases:
     exec_delete_cost_of_no_break (a no-break deletion costs exactly 1 unit) and
     exec_insert_cost_of_no_break (a no-break insertion costs at most the window
     size). All headline theorems in
@@ -287,7 +301,7 @@ review:
     (scripts/gen_comparator_wrappers.py). Each proof builds under lake build
     with the leanchecker external kernel checker passing and no sorry / axiom /
     admit / unsafe / native_decide in the Solution module; the AxiomAudit
-    confirms all 37 comparator theorems depend only on propext, Quot.sound and
+    confirms all 41 comparator theorems depend only on propext, Quot.sound and
     Classical.choice. The two authors (Md Thoriqul Islam Thonmay and Gregory
     Morse) are co-authors; the review status is author-verified and no
     independent third-party review has occurred. As a co-author, Gregory Morse
