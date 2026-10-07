@@ -19,6 +19,8 @@
     "Challenge.legal_after_laterPos",
     "Challenge.delete_legal_between",
     "Challenge.insert_break_iff",
+    "Challenge.no_break_at_laterPos",
+    "Challenge.insert_break_iff_old",
     "Challenge.insert_update_eq_self_iff",
     "Challenge.delete_update_eq_self_iff",
     "Challenge.exec_insert_update_eq",

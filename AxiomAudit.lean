@@ -33,6 +33,8 @@ the comparator list.
 #print axioms Challenge.legal_after_laterPos
 #print axioms Challenge.delete_legal_between
 #print axioms Challenge.insert_break_iff
+#print axioms Challenge.no_break_at_laterPos
+#print axioms Challenge.insert_break_iff_old
 #print axioms Challenge.insert_update_eq_self_iff
 #print axioms Challenge.delete_update_eq_self_iff
 #print axioms Challenge.exec_insert_update_eq

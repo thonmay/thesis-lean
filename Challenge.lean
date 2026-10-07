@@ -565,6 +565,27 @@ theorem insert_break_iff : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order
                   UGraph.laterVert order u v < order.get ⟨k, hk⟩) := by
   sorry
 
+/-- Locality sharpening: on an insertion the old pick at the later endpoint's own position never breaks, so the probe window is the open interval (earlierPos, laterPos). -/
+theorem no_break_at_laterPos : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → ¬ G.adj u v → G'.adj u v → G.IsMCSOrdering order →
+        ∀ (hk : UGraph.laterPos order u v < order.length),
+          G'.IsMCSNext (List.take (UGraph.laterPos order u v) order).toFinset
+            (order.get ⟨UGraph.laterPos order u v, hk⟩) := by
+  sorry
+
+/-- Locality sharpening: strictly inside the open window, the break criterion is decidable from the old-graph counts alone. -/
+theorem insert_break_iff_old : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
+      G.FlipOf G' u v → ¬ G.adj u v → G'.adj u v → G.IsMCSOrdering order →
+        ∀ (k : ℕ) (hk : k < order.length),
+          UGraph.earlierPos order u v < k → k < UGraph.laterPos order u v →
+            (¬ G'.IsMCSNext (List.take k order).toFinset (order.get ⟨k, hk⟩) ↔
+              G.neigh (List.take k order).toFinset (UGraph.laterVert order u v) =
+                  G.neigh (List.take k order).toFinset (order.get ⟨k, hk⟩) ∨
+                (G.neigh (List.take k order).toFinset (UGraph.laterVert order u v) =
+                    G.neigh (List.take k order).toFinset (order.get ⟨k, hk⟩) - 1 ∧
+                  UGraph.laterVert order u v < order.get ⟨k, hk⟩)) := by
+  sorry
+
 /-- The insertion update is the identity exactly when the order is still canonical for the new graph. -/
 theorem insert_update_eq_self_iff : ∀ {n : ℕ} {G G' : UGraph n} (u v : Vert n) (order : List (Vert n)),
       G.FlipOf G' u v → G.IsMCSOrdering order →
