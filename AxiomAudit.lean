@@ -46,6 +46,7 @@ the comparator list.
 #print axioms Challenge.exec_insert_update_c_fst
 #print axioms Challenge.exec_delete_update_c_fst
 #print axioms Challenge.exists_common_ordering
+#print axioms Challenge.exists_common_ordering_prefix
 #print axioms Challenge.common_order_extends_prefix
 #print axioms Challenge.insert_matching_common_order
 #print axioms Challenge.delete_matching_common_order
@@ -53,4 +54,5 @@ the comparator list.
 #print axioms Challenge.triangle_no_common_order
 #print axioms Challenge.p4_no_common_order
 #print axioms Challenge.mixed_matching_no_common_order
+#print axioms Challenge.two_p3_no_common_order
 -- END AUDIT

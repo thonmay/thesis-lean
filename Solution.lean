@@ -304,6 +304,7 @@ theorem exec_delete_recompute_valid (n : ℕ) (a : Adj n) (u v : Vert n)
 
 
 /-! ## Comparator headline theorems (generated) -/
+
 /-- The canonical MCS ordering of a graph is unique (the lowest-index tie-break fixes every step). -/
 theorem IsMCSOrdering_unique : ∀ {n : ℕ} {G : UGraph n} {o₁ o₂ : List (Vert n)},
     G.IsMCSOrdering o₁ → G.IsMCSOrdering o₂ → o₁ = o₂ :=
@@ -443,6 +444,17 @@ theorem exists_common_ordering : ∀ {n : ℕ} (G G' : UGraph n),
           ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord :=
   Proofs.exists_common_ordering
 
+/-- Stability: if G' neighbour counts exceed G's by at most one along every proper common MCS prefix, the two graphs share an MCS ordering (strictly more general than the every-subset version). -/
+theorem exists_common_ordering_prefix : ∀ {n : ℕ} (G G' : UGraph n),
+      (∀ (P : List (Vert n)),
+          IsCommonPrefix G G' P → P.length < n →
+            ∀ (x : Vert n), G.neigh P.toFinset x ≤ G'.neigh P.toFinset x) →
+        (∀ (P : List (Vert n)),
+            IsCommonPrefix G G' P → P.length < n →
+              ∀ (x : Vert n), G'.neigh P.toFinset x ≤ G.neigh P.toFinset x + 1) →
+          ∃ ord, G.IsMCSOrderingAny ord ∧ G'.IsMCSOrderingAny ord :=
+  Proofs.exists_common_ordering_prefix
+
 /-- Online stability: any common MCS prefix extends to a full common MCS ordering of both graphs; a maintainer picking a common-maximum vertex at each step never needs to backtrack. -/
 theorem common_order_extends_prefix : ∀ {n : ℕ} (G G' : UGraph n),
       (∀ (S : Finset (Vert n)) (x : Vert n), G.neigh S x ≤ G'.neigh S x) →
@@ -484,6 +496,13 @@ theorem p4_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 6 [(0,3),(0,5
 theorem mixed_matching_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 4 [(0,1),(0,3),(1,2)]) ord ∧
       IsMCSOrderingAny (ofEdges 4 [(0,3),(1,2),(2,3)]) ord :=
   Proofs.mixed_matching_no_common_order
+
+/-- Stability obstruction: inserting a 2P3 (two disjoint length-2 paths, four edges) can destroy every common MCS ordering; unlike the triangle and P4 this needs n = 8. -/
+theorem two_p3_no_common_order : ¬ ∃ ord, IsMCSOrderingAny (ofEdges 8 [(1,5),(1,7),(2,4),(2,6),(4,5)]) ord ∧
+      IsMCSOrderingAny
+        (ofEdges 8 ([(1,5),(1,7),(2,4),(2,6),(4,5)] ++ [(0,1),(0,2),(3,4),(3,5)])) ord :=
+  Proofs.two_p3_no_common_order
+
 
 
 end Challenge

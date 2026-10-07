@@ -87,7 +87,7 @@ The formalization proves, for every graph size `n`:
 
 ## Theorem map
 
-The Palomar comparator contract is the 37-name list in
+The Palomar comparator contract is the 39-name list in
 [`comparator.json`](comparator.json). Each name is a real theorem in
 [`Solution.lean`](Solution.lean) with a matching `sorry` statement in
 [`Challenge.lean`](Challenge.lean). Both files are generated from a single
@@ -102,10 +102,10 @@ so the posed and proved types stay textually identical.
 | Executable refinement | `exec_insert_update_eq`, `exec_delete_update_eq` |
 | Unit cost | `exec_insert_cost_le`, `exec_delete_cost_le`, `exec_insert_cost_of_no_break`, `exec_delete_cost_of_no_break`, `exec_insert_cost_of_break`, `exec_delete_cost_of_break`, `exec_insert_update_c_fst`, `exec_delete_update_c_fst` |
 | Executable bridge | `setEdge_preserves_symm`, `setEdge_preserves_loopless`, `mcsOrder_eq_greedySuffix`, `exec_insert_recompute_valid`, `exec_delete_recompute_valid` |
-| Stability | `exists_common_ordering`, `common_order_extends_prefix`, `insert_matching_common_order`, `delete_matching_common_order`, `flip_common_order` |
-| Stability obstructions | `triangle_no_common_order`, `p4_no_common_order`, `mixed_matching_no_common_order` |
+| Stability | `exists_common_ordering`, `exists_common_ordering_prefix`, `common_order_extends_prefix`, `insert_matching_common_order`, `delete_matching_common_order`, `flip_common_order` |
+| Stability obstructions | `triangle_no_common_order`, `p4_no_common_order`, `mixed_matching_no_common_order`, `two_p3_no_common_order` |
 
-All 37 theorems audit to only the three standard Lean axioms:
+All 39 theorems audit to only the three standard Lean axioms:
 `propext`, `Quot.sound`, `Classical.choice` (no `sorry`, no `native_decide`).
 
 ## Repository layout
@@ -130,6 +130,7 @@ scripts/
   check_axioms.sh          Axiom audit for all comparator theorems
   gen_comparator_wrappers.py  Single-source generator for comparator blocks
   mcs_stability.py         Exhaustive stability harness (cross-check for counterexamples)
+  stab.c                   Independent C brute-force stability checker (referee-written)
   mcs_highn_crosscheck.py  High-n cross-check of the adopted candidate vs from-scratch MCS
   incomparability_witness.py  MCS/LexBFS ordering-family incomparability (204/204/40)
   candidates/gen003_c02.py    The adopted dynamic-MCS candidate the cross-check runs

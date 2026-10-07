@@ -69,6 +69,14 @@ def IsMCSOrderingAny (G : UGraph n) (order : List (Vert n)) : Prop :=
   ∀ (i : ℕ) (hi : i < order.length),
     IsMCSNextAny G (order.take i).toFinset (order.get ⟨i, hi⟩)
 
+/-- `P` is a *common MCS prefix* of `G` and `G'`: a duplicate-free partial
+ordering every one of whose steps is a legal MCS pick in *both* graphs. These
+are the sets the greedy construction of a common ordering visits. -/
+def IsCommonPrefix (G G' : UGraph n) (P : List (Vert n)) : Prop :=
+  P.Nodup ∧ ∀ i (hi : i < P.length),
+    IsMCSNextAny G (P.take i).toFinset (P.get ⟨i, hi⟩) ∧
+    IsMCSNextAny G' (P.take i).toFinset (P.get ⟨i, hi⟩)
+
 /-- `G'` differs from `G` only by flipping the undirected edge `{u, v}`. -/
 def FlipOf (G G' : UGraph n) (u v : Vert n) : Prop :=
   u ≠ v ∧

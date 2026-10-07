@@ -86,10 +86,15 @@ theorem exists_common_pick (G G' : UGraph n) (S : Finset (Vert n))
     have h4 := hw w' hw'U
     omega
 
-/-- If counts in `G'` exceed counts in `G` by `0` or `1` along every chosen
-set, some ordering is an MCS ordering of both graphs. -/
-theorem exists_common_ordering (G G' : UGraph n)
-    (hlo : ∀ S x, G.neigh S x ≤ G'.neigh S x) (hhi : ∀ S x, G'.neigh S x ≤ G.neigh S x + 1) :
+/-- If the counts track to within one along every *proper common MCS prefix* —
+the sets the constructive proof actually visits — the two graphs share an MCS
+ordering. This is strictly more general than `exists_common_ordering`: the
+hypothesis is required only on reachable prefixes, not on every subset. -/
+theorem exists_common_ordering_prefix (G G' : UGraph n)
+    (hlo : ∀ P, IsCommonPrefix G G' P → P.length < n →
+             ∀ x, G.neigh P.toFinset x ≤ G'.neigh P.toFinset x)
+    (hhi : ∀ P, IsCommonPrefix G G' P → P.length < n →
+             ∀ x, G'.neigh P.toFinset x ≤ G.neigh P.toFinset x + 1) :
     ∃ ord, IsMCSOrderingAny G ord ∧ IsMCSOrderingAny G' ord := by
   suffices h : ∀ k ≤ n, ∃ P : List (Vert n), P.length = k ∧ P.Nodup ∧
       ∀ i (hi : i < P.length), IsMCSNextAny G (P.take i).toFinset (P.get ⟨i, hi⟩) ∧
@@ -107,7 +112,10 @@ theorem exists_common_ordering (G G' : UGraph n)
         have hc : P.toFinset.card = n := by rw [h, Finset.card_univ, Fintype.card_fin]
         rw [List.toFinset_card_of_nodup hnd] at hc
         omega
-      obtain ⟨w, hwG, hwG'⟩ := exists_common_pick G G' P.toFinset (hlo _) (hhi _) hS
+      have hcommon : IsCommonPrefix G G' P := ⟨hnd, hP⟩
+      have hlt : P.length < n := by omega
+      obtain ⟨w, hwG, hwG'⟩ :=
+        exists_common_pick G G' P.toFinset (hlo P hcommon hlt) (hhi P hcommon hlt) hS
       have hwP : w ∉ P := fun hm => (Finset.mem_sdiff.1 hwG.1).2 (List.mem_toFinset.2 hm)
       refine ⟨P ++ [w], by simp [hlen], ?_,
         steps_append (Q := fun S x => IsMCSNextAny G S x ∧ IsMCSNextAny G' S x) P w hP ⟨hwG, hwG'⟩⟩
@@ -119,6 +127,17 @@ theorem exists_common_ordering (G G' : UGraph n)
       intro hxy
       subst hxy
       exact hwP hx
+
+/-- If counts in `G'` exceed counts in `G` by `0` or `1` along every chosen
+set, some ordering is an MCS ordering of both graphs. This is the
+`exists_common_ordering_prefix` bound required on *every* subset, hence in
+particular on every common prefix; it is the special case of the prefix version
+in which the stronger, all-subsets hypothesis holds. -/
+theorem exists_common_ordering (G G' : UGraph n)
+    (hlo : ∀ S x, G.neigh S x ≤ G'.neigh S x) (hhi : ∀ S x, G'.neigh S x ≤ G.neigh S x + 1) :
+    ∃ ord, IsMCSOrderingAny G ord ∧ IsMCSOrderingAny G' ord :=
+  exists_common_ordering_prefix G G'
+    (fun _ _ _ x => hlo _ x) (fun _ _ _ x => hhi _ x)
 
 /-- Online form of the common-ordering theorem: any common MCS prefix — a
 duplicate-free list `P` whose every step is a legal MCS step in *both* graphs —
@@ -365,6 +384,21 @@ theorem mixed_matching_no_common_order :
     ¬ ∃ ord, IsMCSOrderingAny (ofEdges 4 [(0,1),(0,3),(1,2)]) ord ∧
       IsMCSOrderingAny (ofEdges 4 [(0,3),(1,2),(2,3)]) ord := by
   apply no_common_order_of_search (n := 4)
+  decide
+
+/-- Inserting the matching-like one-sided update `2P3` (the four edges
+`01, 02, 34, 35`, forming two disjoint length-2 paths) into the five-edge graph
+on eight vertices leaves no common MCS ordering. Unlike the triangle and the
+`P4`, this obstruction needs `n = 8` (it admits a common ordering for all hosts
+on `n ≤ 7`); the witness is the sparsest found by the exhaustive sweep in
+`stab.c` (13,644 of the 2^24 hosts fail). -/
+theorem two_p3_no_common_order :
+    ¬ ∃ ord,
+      IsMCSOrderingAny (ofEdges 8 [(1,5),(1,7),(2,4),(2,6),(4,5)]) ord ∧
+      IsMCSOrderingAny
+        (ofEdges 8 ([(1,5),(1,7),(2,4),(2,6),(4,5)] ++
+          [(0,1),(0,2),(3,4),(3,5)])) ord := by
+  apply no_common_order_of_search (n := 8)
   decide
 
 end Proofs
