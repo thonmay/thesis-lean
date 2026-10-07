@@ -454,3 +454,149 @@ theorem delete_update_of_no_break (u v : Vert n) (order : List (Vert n))
 
 end Proofs
 end Challenge
+
+/-! ## The step-function probe lemma
+
+`neigh_take_succ` is the structural fact behind the sublinear window probe:
+the running count `c_v(j) = G.neigh (order.take j).toFinset v` changes by at
+most one per step, and increments exactly when the newly added vertex is a
+neighbour of `v`.  The corollary `neigh_take_sub_eq_count` extends this over an
+arbitrary window `[j, k)`: the net change is exactly the number of neighbour
+positions in the window, hence (a) `c_v` is monotone and (b) over a window
+containing `m` neighbour positions, `c_v` takes at most `m + 1` distinct values
+(`neigh_take_image_card_le`), which is the combinatorial heart of the
+`O((deg+1) log n)` probe.
+
+Note: the one-step identity requires `order.Nodup`.  Without it the statement is
+false: if `order` revisits an already-chosen vertex, `(order.take (j+1)).toFinset`
+still equals `(order.take j).toFinset` while the indicator can be `1`. -/
+
+noncomputable section
+open Classical
+
+namespace Challenge
+namespace Proofs
+
+open UGraph
+
+variable {n : ℕ}
+
+/-- One-step cardinality update for `neigh` when a fresh vertex is added. -/
+lemma neigh_insert_aux (G : UGraph n) (s : Finset (Vert n)) (x v : Vert n) (hx : x ∉ s) :
+    G.neigh (insert x s) v = G.neigh s v + (if G.adj v x then 1 else 0) := by
+  classical
+  unfold UGraph.neigh
+  have hle : (s.filter (fun y => ¬ G.adj v y)).card ≤ s.card :=
+    Finset.card_le_card (Finset.filter_subset _ _)
+  rw [Finset.card_insert_of_notMem hx, Finset.filter_insert]
+  by_cases h : G.adj v x
+  · simp only [h, not_true, ↓reduceIte]
+    omega
+  · simp only [h, not_false_eq_true, ↓reduceIte]
+    have hx' : x ∉ s.filter (fun y => ¬ G.adj v y) :=
+      fun hx2 => hx (Finset.filter_subset _ _ hx2)
+    rw [Finset.card_insert_of_notMem hx']
+    omega
+
+/-- The step-function identity: `c_v` increases by exactly the indicator that
+the newly added vertex is a neighbour of `v`. -/
+lemma neigh_take_succ (G : UGraph n) (order : List (Vert n)) (hnodup : order.Nodup)
+    (v : Vert n) (j : ℕ) (hj : j < order.length) :
+    G.neigh (order.take (j+1)).toFinset v =
+      G.neigh (order.take j).toFinset v +
+        (if G.adj v (order.get ⟨j, hj⟩) then 1 else 0) := by
+  classical
+  let x := order.get ⟨j, hj⟩
+  have htake : order.take (j+1) = order.take j ++ [x] := by
+    rw [List.take_add_one, List.getElem?_eq_getElem hj]
+    simp [x]
+  have hxN : x ∉ (order.take j).toFinset := by
+    rw [List.mem_toFinset]
+    intro hx
+    have h1 := (List.mem_take_iff_idxOf_lt (List.get_mem order ⟨j, hj⟩)).mp hx
+    have h2 : List.idxOf (order.get ⟨j, hj⟩) order = j := List.get_idxOf hnodup ⟨j, hj⟩
+    rw [h2] at h1
+    exact absurd h1 (lt_irrefl j)
+  rw [htake, List.toFinset_append]
+  have hsing : ([x] : List (Vert n)).toFinset = {x} := by simp
+  rw [hsing, Finset.union_singleton]
+  exact neigh_insert_aux G (order.take j).toFinset x v hxN
+
+/-- `neigh S v` counts exactly the `S`-vertices adjacent to `v`. -/
+lemma neigh_eq_filter_adj_card (G : UGraph n) (s : Finset (Vert n)) (v : Vert n) :
+    G.neigh s v = (s.filter (fun w => G.adj v w)).card := by
+  classical
+  have h := Finset.card_filter_add_card_filter_not (s := s) (p := fun w => G.adj v w)
+  unfold UGraph.neigh
+  omega
+
+/-- Filtering a nodup list by adjacency and counting equals filtering its
+finset. -/
+lemma toFinset_filter_card (G : UGraph n) (l : List (Vert n)) (hl : l.Nodup) (v : Vert n) :
+    (l.toFinset.filter (fun w => G.adj v w)).card =
+      (l.filter (fun w => G.adj v w)).length := by
+  classical
+  rw [← List.toFinset_card_of_nodup (hl.filter _)]
+  congr 1
+  ext x
+  simp only [Finset.mem_filter, List.mem_toFinset, List.mem_filter, decide_eq_true_eq]
+
+/-- Window form of the step-function identity: the net change of `c_v` over
+`[j, k)` is exactly the number of neighbour positions in the window. -/
+theorem neigh_take_sub_eq_count (G : UGraph n) (order : List (Vert n)) (hnodup : order.Nodup)
+    (v : Vert n) (j k : ℕ) (hjk : j ≤ k) (hk : k ≤ order.length) :
+    G.neigh (order.take k).toFinset v =
+      G.neigh (order.take j).toFinset v +
+        (List.filter (fun w => G.adj v w) ((order.drop j).take (k - j))).length := by
+  classical
+  rw [neigh_eq_filter_adj_card, neigh_eq_filter_adj_card]
+  rw [toFinset_filter_card _ _ ((List.take_sublist k order).nodup hnodup) v,
+    toFinset_filter_card _ _ ((List.take_sublist j order).nodup hnodup) v]
+  have hsplit : order.take k = order.take j ++ (order.drop j).take (k - j) := by
+    have h := List.take_add (l := order) (i := j) (j := k - j)
+    rw [Nat.add_sub_cancel' hjk] at h
+    exact h
+  rw [hsplit, List.filter_append, List.length_append]
+
+/-- Bound form used by the complexity argument: the increment over a window is
+at most the number of neighbour positions in it. -/
+theorem neigh_take_sub_le_count (G : UGraph n) (order : List (Vert n)) (hnodup : order.Nodup)
+    (v : Vert n) (j k : ℕ) (hjk : j ≤ k) (hk : k ≤ order.length) :
+    G.neigh (order.take k).toFinset v - G.neigh (order.take j).toFinset v ≤
+      (List.filter (fun w => G.adj v w) ((order.drop j).take (k - j))).length := by
+  rw [neigh_take_sub_eq_count G order hnodup v j k hjk hk]
+  omega
+
+/-- `c_v` is monotone along `order`. -/
+lemma neigh_take_mono (G : UGraph n) (order : List (Vert n)) (hnodup : order.Nodup) (v : Vert n)
+    {j k : ℕ} (hjk : j ≤ k) (hk : k ≤ order.length) :
+    G.neigh (order.take j).toFinset v ≤ G.neigh (order.take k).toFinset v := by
+  rw [neigh_take_sub_eq_count G order hnodup v j k hjk hk]
+  omega
+
+/-- The number of distinct values of `c_v(t)` as `t` ranges over `[j, k]` is at
+most the number of neighbour positions in the window plus one. -/
+theorem neigh_take_image_card_le (G : UGraph n) (order : List (Vert n)) (hnodup : order.Nodup)
+    (v : Vert n) (j k : ℕ) (hjk : j ≤ k) (hk : k ≤ order.length) :
+    (Finset.image (fun t => G.neigh (order.take t).toFinset v) (Finset.Icc j k)).card ≤
+      (List.filter (fun w => G.adj v w) ((order.drop j).take (k - j))).length + 1 := by
+  classical
+  have hmono : ∀ t, j ≤ t → t ≤ k → G.neigh (order.take j).toFinset v ≤
+      G.neigh (order.take t).toFinset v :=
+    fun t h1 h2 => neigh_take_mono G order hnodup v h1 (le_trans h2 hk)
+  have hsub : Finset.image (fun t => G.neigh (order.take t).toFinset v) (Finset.Icc j k)
+      ⊆ Finset.Icc (G.neigh (order.take j).toFinset v) (G.neigh (order.take k).toFinset v) := by
+    intro y hy
+    rcases Finset.mem_image.mp hy with ⟨t, ht, rfl⟩
+    rw [Finset.mem_Icc] at ht ⊢
+    exact ⟨hmono t ht.1 ht.2,
+      neigh_take_mono G order hnodup v ht.2 hk⟩
+  calc (Finset.image (fun t => G.neigh (order.take t).toFinset v) (Finset.Icc j k)).card
+      ≤ (Finset.Icc (G.neigh (order.take j).toFinset v) (G.neigh (order.take k).toFinset v)).card :=
+        Finset.card_le_card hsub
+    _ = (List.filter (fun w => G.adj v w) ((order.drop j).take (k - j))).length + 1 := by
+        rw [Nat.card_Icc, neigh_take_sub_eq_count G order hnodup v j k hjk hk]
+        omega
+
+end Proofs
+end Challenge
